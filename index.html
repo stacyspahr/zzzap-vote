@@ -2,61 +2,509 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Zzzap</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* ─── Design tokens (from iOS app) ─────────────────────────────── */
+    :root {
+      --bg:           #000000;
+      --surface:      #1c1c1e;
+      --surface2:     #2c2c2e;
+      --border:       rgba(255,255,255,0.10);
+      --yellow:       #FFE033;
+      --yellow-dim:   rgba(255,224,51,0.15);
+      --yellow-bar:   rgba(255,224,51,0.85);
+      --text:         #ffffff;
+      --text-sec:     rgba(255,255,255,0.55);
+      --text-ter:     rgba(255,255,255,0.30);
+      --radius-card:  20px;
+      --radius-btn:   14px;
+      --radius-pill:  100px;
+      --font:         -apple-system, "SF Pro Display", "SF Pro Text", BlinkMacSystemFont, sans-serif;
+    }
+
+    /* ─── Reset ─────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      background: #000;
-      color: #fff;
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
-      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      -webkit-font-smoothing: antialiased;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 24px;
+    }
+
+    /* ─── Layout ────────────────────────────────────────────────────── */
+    .page {
+      width: 100%;
+      max-width: 430px;          /* iPhone 14 Pro Max width — feels native */
+      padding: 0 16px 48px;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* Desktop: slightly wider card, centered */
+    @media (min-width: 600px) {
+      .page { max-width: 480px; padding: 0 0 64px; }
+    }
+
+    /* ─── Top bar ───────────────────────────────────────────────────── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 0 8px;
     }
 
     .logo {
-      font-size: 48px;
-      font-weight: 800;
-      letter-spacing: -1px;
-      margin-bottom: 12px;
-    }
-
-    .tagline {
-      font-size: 17px;
-      color: rgba(255,255,255,0.55);
-      margin-bottom: 48px;
-      text-align: center;
-    }
-
-    .badge {
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      gap: 10px;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 14px;
-      padding: 14px 22px;
-      font-size: 15px;
-      font-weight: 500;
-      color: rgba(255,255,255,0.75);
+      gap: 6px;
       text-decoration: none;
     }
 
-    .badge:hover {
-      background: rgba(255,255,255,0.12);
+    .logo-bolt {
+      width: 22px;
+      height: 22px;
+      fill: var(--yellow);
     }
+
+    .logo-text {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      color: var(--text);
+    }
+
+    .app-store-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--yellow-dim);
+      border: 1px solid rgba(255,224,51,0.25);
+      border-radius: var(--radius-pill);
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--yellow);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .app-store-btn:active { opacity: 0.7; }
+
+    /* ─── Creator row ───────────────────────────────────────────────── */
+    .creator-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 20px 0 14px;
+    }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: var(--surface2);
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .creator-meta { flex: 1; min-width: 0; }
+
+    .creator-name {
+      font-size: 15px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .creator-handle {
+      font-size: 13px;
+      color: var(--text-sec);
+    }
+
+    .time-badge {
+      font-size: 12px;
+      color: var(--text-ter);
+      white-space: nowrap;
+    }
+
+    /* ─── Poll card ─────────────────────────────────────────────────── */
+    .poll-card {
+      background: var(--surface);
+      border-radius: var(--radius-card);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .poll-question {
+      padding: 20px 20px 16px;
+      font-size: 20px;
+      font-weight: 700;
+      line-height: 1.3;
+      letter-spacing: -0.3px;
+    }
+
+    /* ─── Voting options ────────────────────────────────────────────── */
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      padding: 0 12px 12px;
+    }
+
+    .option {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 13px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      margin-bottom: 6px;
+      background: transparent;
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .option:last-child { margin-bottom: 0; }
+
+    .option:active { opacity: 0.8; }
+
+    /* Vote bar that fills behind option */
+    .option-bar {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      background: var(--yellow-dim);
+      border-radius: 12px;
+      width: 0;
+      transition: width 0.6s cubic-bezier(0.25, 1, 0.5, 1);
+      pointer-events: none;
+    }
+
+    /* Selected state */
+    .option.selected {
+      border-color: var(--yellow);
+    }
+
+    .option.selected .option-bar {
+      background: var(--yellow-dim);
+    }
+
+    .option.voted-other {
+      opacity: 0.6;
+    }
+
+    /* Radio circle */
+    .radio {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.15s;
+      position: relative;
+      z-index: 1;
+    }
+
+    .option.selected .radio {
+      border-color: var(--yellow);
+      background: var(--yellow);
+    }
+
+    .radio-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #000;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    .option.selected .radio-dot { opacity: 1; }
+
+    .option-label {
+      flex: 1;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.3;
+      position: relative;
+      z-index: 1;
+    }
+
+    .option-pct {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-sec);
+      min-width: 36px;
+      text-align: right;
+      position: relative;
+      z-index: 1;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    /* ─── Vote CTA ──────────────────────────────────────────────────── */
+    .vote-cta {
+      padding: 4px 12px 12px;
+    }
+
+    .vote-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: var(--radius-btn);
+      background: var(--yellow);
+      color: #000;
+      font-size: 17px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .vote-btn:disabled {
+      opacity: 0.35;
+      cursor: default;
+    }
+
+    .vote-btn:not(:disabled):active {
+      transform: scale(0.98);
+      opacity: 0.85;
+    }
+
+    /* ─── After voting: results header ─────────────────────────────── */
+    .results-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 20px 16px;
+      border-top: 1px solid var(--border);
+    }
+
+    .vote-count {
+      font-size: 13px;
+      color: var(--text-sec);
+    }
+
+    .expires-badge {
+      font-size: 12px;
+      color: var(--text-ter);
+    }
+
+    /* ─── Download nudge (shown after voting) ───────────────────────── */
+    .download-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 20px;
+      margin-top: 16px;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .download-card.visible { display: flex; }
+
+    .download-title {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .download-body {
+      font-size: 14px;
+      color: var(--text-sec);
+      line-height: 1.5;
+    }
+
+    .download-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 14px;
+      border-radius: var(--radius-btn);
+      background: var(--yellow);
+      color: #000;
+      font-size: 16px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: opacity 0.15s;
+    }
+
+    .download-btn:active { opacity: 0.8; }
+
+    /* ─── Footer ────────────────────────────────────────────────────── */
+    .footer {
+      margin-top: 32px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-ter);
+    }
+
+    /* ─── Voted state overrides ─────────────────────────────────────── */
+    body.has-voted .option { cursor: default; }
+    body.has-voted .option-pct { opacity: 1; }
+    body.has-voted .vote-cta { display: none; }
   </style>
 </head>
 <body>
-  <div class="logo">Zzzap ⚡</div>
-  <div class="tagline">Web voting is coming soon.</div>
-  <a class="badge" href="https://apps.apple.com/app/zzzap" target="_blank">
-    Download Zzzap on the App Store
-  </a>
+
+<div class="page">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <a class="logo" href="https://zzzap-app.com">
+      <!-- Lightning bolt SVG matching AnimatedBoltLogo.swift proportions -->
+      <svg class="logo-bolt" viewBox="0 0 100 100">
+        <polygon points="63.9,0 0,56.8 47.5,56.8 36.1,100 100,43.2 52.5,43.2" />
+      </svg>
+      <span class="logo-text">Zzzap</span>
+    </a>
+    <a class="app-store-btn" href="https://apps.apple.com/app/zzzap" target="_blank">
+      Get the app
+    </a>
+  </div>
+
+  <!-- Creator row -->
+  <div class="creator-row">
+    <div class="avatar">🎤</div>
+    <div class="creator-meta">
+      <div class="creator-name">Creator Name</div>
+      <div class="creator-handle">@creator</div>
+    </div>
+    <div class="time-badge">2h ago</div>
+  </div>
+
+  <!-- Poll card -->
+  <div class="poll-card">
+    <div class="poll-question">Which feature should we build next?</div>
+
+    <div class="options" id="options">
+      <div class="option" data-index="0" onclick="selectOption(0)">
+        <div class="option-bar" id="bar-0"></div>
+        <div class="radio"><div class="radio-dot"></div></div>
+        <div class="option-label">Dark mode support</div>
+        <div class="option-pct" id="pct-0"></div>
+      </div>
+      <div class="option" data-index="1" onclick="selectOption(1)">
+        <div class="option-bar" id="bar-1"></div>
+        <div class="radio"><div class="radio-dot"></div></div>
+        <div class="option-label">Push notifications</div>
+        <div class="option-pct" id="pct-1"></div>
+      </div>
+      <div class="option" data-index="2" onclick="selectOption(2)">
+        <div class="option-bar" id="bar-2"></div>
+        <div class="radio"><div class="radio-dot"></div></div>
+        <div class="option-label">iPad layout</div>
+        <div class="option-pct" id="pct-2"></div>
+      </div>
+      <div class="option" data-index="3" onclick="selectOption(3)">
+        <div class="option-bar" id="bar-3"></div>
+        <div class="radio"><div class="radio-dot"></div></div>
+        <div class="option-label">Widgets</div>
+        <div class="option-pct" id="pct-3"></div>
+      </div>
+    </div>
+
+    <div class="vote-cta">
+      <button class="vote-btn" id="vote-btn" disabled onclick="castVote()">Vote</button>
+    </div>
+
+    <div class="results-meta" id="results-meta" style="display:none">
+      <span class="vote-count" id="vote-count">247 votes</span>
+      <span class="expires-badge">Closes in 18h</span>
+    </div>
+  </div>
+
+  <!-- Download nudge (revealed after voting) -->
+  <div class="download-card" id="download-card">
+    <div class="download-title">See every poll. Get notified first.</div>
+    <div class="download-body">Follow this creator on Zzzap and you'll get a notification the moment they post their next one.</div>
+    <a class="download-btn" href="https://apps.apple.com/app/zzzap" target="_blank">
+      ⚡ Download Zzzap
+    </a>
+  </div>
+
+  <div class="footer">Made with Zzzap ⚡</div>
+
+</div>
+
+<script>
+  // Mock vote distribution (will come from Firestore in production)
+  const mockVotes = [112, 74, 38, 23];
+  const totalVotes = mockVotes.reduce((a, b) => a + b, 0);
+
+  let selectedIndex = null;
+  let hasVoted = false;
+
+  function selectOption(index) {
+    if (hasVoted) return;
+    selectedIndex = index;
+
+    document.querySelectorAll('.option').forEach((el, i) => {
+      el.classList.toggle('selected', i === index);
+      el.classList.remove('voted-other');
+    });
+
+    document.getElementById('vote-btn').disabled = false;
+  }
+
+  function castVote() {
+    if (selectedIndex === null || hasVoted) return;
+    hasVoted = true;
+
+    // Add the user's vote to the mock totals
+    mockVotes[selectedIndex] += 1;
+    const newTotal = mockVotes.reduce((a, b) => a + b, 0);
+
+    // Mark voted state
+    document.body.classList.add('has-voted');
+
+    document.querySelectorAll('.option').forEach((el, i) => {
+      const pct = Math.round((mockVotes[i] / newTotal) * 100);
+      const bar = document.getElementById('bar-' + i);
+      const pctEl = document.getElementById('pct-' + i);
+
+      pctEl.textContent = pct + '%';
+
+      if (i !== selectedIndex) {
+        el.classList.add('voted-other');
+      }
+
+      // Animate bar width after a short delay
+      setTimeout(() => {
+        bar.style.width = pct + '%';
+      }, 50 + i * 60);
+    });
+
+    // Show results footer
+    const meta = document.getElementById('results-meta');
+    meta.style.display = 'flex';
+    document.getElementById('vote-count').textContent = newTotal + ' votes';
+
+    // Show download nudge
+    setTimeout(() => {
+      document.getElementById('download-card').classList.add('visible');
+    }, 400);
+  }
+</script>
+
 </body>
 </html>
