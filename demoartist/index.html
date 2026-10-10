@@ -67,7 +67,6 @@
     padding: 5px 12px; border-radius: 100px;
     margin-bottom: 10px;
   }
-  .creator-badge .bolt { font-size: 11px; }
   h1.name {
     font-family: -apple-system, "SF Pro Display", sans-serif;
     font-size: 40px; font-weight: 800; letter-spacing: -0.02em;
@@ -217,7 +216,7 @@
     padding: 34px 20px 40px;
     color: var(--dimmer);
   }
-  .bolts { color: var(--yellow); font-size: 22px; letter-spacing: -6px; margin-bottom: 8px; }
+  .bolts { line-height: 0; margin-bottom: 10px; }
   .tagline { font-size: 13px; font-weight: 600; color: var(--dim); }
   .legal { font-size: 11px; margin-top: 10px; }
   footer a { color: var(--dimmer); }
@@ -233,7 +232,7 @@
          alt="Jason Prouty"
          onerror="heroFallback(this)">
     <div class="hero-content">
-      <div class="creator-badge"><span class="bolt">&#9889;</span> Artist &middot; Zzzap Creator</div>
+      <div class="creator-badge">Artist &middot; Zzzap Creator</div>
       <h1 class="name">Jason Prouty</h1>
       <div class="handle">zzzap.app/@garage31</div>
       <div class="bio">Garage31. Murals, airbrush, photorealism on wood. Oregon born, twenty years of commissions. Help me decide what leaves the studio next.</div>
@@ -304,7 +303,7 @@
   </div>
 
   <footer>
-    <div class="bolts">&#9889;&#9889;</div>
+    <div class="bolts"><img src="/zzzap-bolts.svg" alt="Zzzap" width="34" height="30"></div>
     <div class="tagline">Trusted Sources. Real Decisions.</div>
     <div class="legal">Zzzap by Rhapsy LLC &middot; <a href="#">Privacy</a> &middot; <a href="#">Terms</a></div>
   </footer>
