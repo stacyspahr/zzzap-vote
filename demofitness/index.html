@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Maya Reeves (@mayafit) · Zzzap</title>
+<meta name="robots" content="noindex">
+<title>Colette Bottiaux · Zzzap</title>
 <style>
   :root {
     --yellow: #FFD60A;
@@ -37,13 +38,13 @@
     position: relative;
     aspect-ratio: 4 / 5;
     overflow: hidden;
-    background: linear-gradient(160deg, #2a2413 0%, #191922 60%, #0a0a0f 100%);
+    background: linear-gradient(160deg, #16202b 0%, #191922 60%, #0a0a0f 100%);
   }
   .hero img {
     position: absolute; inset: 0;
     width: 100%; height: 100%;
     object-fit: cover;
-    object-position: center 20%;
+    object-position: center top;
   }
   .hero::after {
     content: "";
@@ -220,31 +221,37 @@
   .tagline { font-size: 13px; font-weight: 600; color: var(--dim); }
   .legal { font-size: 11px; margin-top: 10px; }
   footer a { color: var(--dimmer); }
+
+  /* ---------- Front-desk QR sign ---------- */
+  .sign {
+    background: #f5f5f7;
+    color: #111;
+    border-radius: var(--radius);
+    padding: 22px 20px 20px;
+    display: flex; align-items: center; gap: 18px;
+  }
+  .sign img { width: 112px; height: 112px; image-rendering: pixelated; flex-shrink: 0; }
+  .sign .s1 { font-size: 11.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #6b6b73; }
+  .sign .s2 { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.2; margin-top: 4px; }
+  .sign .s3 { font-size: 13px; color: #55555e; margin-top: 6px; line-height: 1.35; }
+  .sign-note { color: var(--dim); font-size: 12.5px; text-align: center; margin-top: 10px; padding: 0 12px; }
 </style>
 </head>
 <body>
 <div class="phone" id="page">
 
-  <!-- Hero: contact-poster treatment -->
   <div class="hero">
-    <img id="heroimg"
-         src="https://images.unsplash.com/photo-1594381898411-846e7d193883?w=900&q=80&fit=crop"
-         alt="Maya Reeves"
-         onerror="heroFallback(this)">
+    <img src="colette.jpg" alt="Colette Bottiaux">
     <div class="hero-content">
-      <div class="creator-badge"><span class="bolt">&#9889;</span> Fitness &middot; Zzzap Creator</div>
-      <h1 class="name">Maya Reeves</h1>
-      <div class="handle">zzzap.app/@mayafit</div>
-      <div class="bio">Trainer. Coach. Your accountability partner. We decide together, then we do the work.</div>
+      <div class="creator-badge"><span class="bolt">&#9889;</span> Personal Trainer &middot; Zzzap Creator</div>
+      <h1 class="name">Colette Bottiaux</h1>
+      <div class="handle">zzzap.app/@colettebottiaux</div>
+      <div class="bio">Trainer in PDX at Vive Fitness. Keeping it simple, staying silly, and getting stronger. You pick, we lift.</div>
     </div>
   </div>
 
-  <!-- Socials -->
   <div class="socials">
-    <a href="#" aria-label="TikTok"><img src="https://cdn.simpleicons.org/tiktok/f5f5f7" alt="TikTok" onerror="iconFallback(this,'TT')"></a>
     <a href="#" aria-label="Instagram"><img src="https://cdn.simpleicons.org/instagram/f5f5f7" alt="Instagram" onerror="iconFallback(this,'IG')"></a>
-    <a href="#" aria-label="YouTube"><img src="https://cdn.simpleicons.org/youtube/f5f5f7" alt="YouTube" onerror="iconFallback(this,'YT')"></a>
-    <a href="#" aria-label="X"><img src="https://cdn.simpleicons.org/x/f5f5f7" alt="X" onerror="iconFallback(this,'X')"></a>
     <a href="#" aria-label="Website"><img src="https://cdn.simpleicons.org/googlechrome/f5f5f7" alt="Website" onerror="iconFallback(this,'&#127760;')"></a>
   </div>
 
@@ -254,22 +261,22 @@
     <div class="card live-card" id="livecard">
       <div class="live-row">
         <span class="live-pill"><span class="dot"></span>LIVE</span>
-        <span class="ends">Ends in 5h 12m</span>
+        <span class="ends">Ends in 3d 2h</span>
       </div>
-      <div class="question">Which January challenge should we run together?</div>
+      <div class="question">Next 4-week program for the crew. What are we building?</div>
       <div class="options" id="options">
-        <button class="option" data-pct="38"><span class="fill"></span><span class="row"><span><span class="check">&#10003; </span>30-day squat ladder</span><span class="pct">38%</span></span></button>
-        <button class="option" data-pct="41"><span class="fill"></span><span class="row"><span><span class="check">&#10003; </span>Couch to 5K, as a crew</span><span class="pct">41%</span></span></button>
-        <button class="option" data-pct="14"><span class="fill"></span><span class="row"><span><span class="check">&#10003; </span>Daily core blast</span><span class="pct">14%</span></span></button>
-        <button class="option" data-pct="7"><span class="fill"></span><span class="row"><span><span class="check">&#10003; </span>Surprise us, Maya</span><span class="pct">7%</span></span></button>
+        <button class="option" data-pct="33"><span class="fill"></span><span class="row"><span><span class="check">&#10003; </span>Your first pull-up</span><span class="pct">33%</span></span></button>
+        <button class="option" data-pct="31"><span class="fill"></span><span class="row"><span><span class="check">&#10003; </span>Glutes and hamstrings</span><span class="pct">31%</span></span></button>
+        <button class="option" data-pct="20"><span class="fill"></span><span class="row"><span><span class="check">&#10003; </span>Core and balance</span><span class="pct">20%</span></span></button>
+        <button class="option" data-pct="16"><span class="fill"></span><span class="row"><span><span class="check">&#10003; </span>Mobility for desk bodies</span><span class="pct">16%</span></span></button>
       </div>
       <div class="meta">
         <span class="you">&#10003; You voted</span>
-        <span id="count">1,283 votes so far</span>
+        <span id="count">1,412 votes so far</span>
       </div>
       <div class="follow-strip">
         <div class="txt">
-          <div class="t1">Never miss Maya's next question</div>
+          <div class="t1">Never miss Colette's next question</div>
           <div class="t2">Get Zzzap and her zzzaps land on your lock screen</div>
         </div>
         <button class="get-btn">Get Zzzap</button>
@@ -282,24 +289,38 @@
     <div class="section-head"><span>Past zzzaps</span></div>
     <div class="archive">
       <div class="past">
-        <div class="q">Morning class time for the winter schedule?</div>
-        <div class="winner"><span class="wname">6:00 AM, before the chaos</span><span class="wpct">52%</span></div>
-        <div class="bar"><i style="width:52%"></i></div>
-        <div class="sub"><span>2,104 votes</span><span>Ended Sep 6</span></div>
+        <div class="q">Gym nerves: what's the hardest part?</div>
+        <div class="winner"><span class="wname">Walking into the weight room</span><span class="wpct">41%</span></div>
+        <div class="bar"><i style="width:41%"></i></div>
+        <div class="sub"><span>1,668 votes</span><span>Ended Sep 27</span></div>
       </div>
       <div class="past">
-        <div class="q">Which program do you want me to film next?</div>
-        <div class="winner"><span class="wname">Kettlebell fundamentals</span><span class="wpct">47%</span></div>
-        <div class="bar"><i style="width:47%"></i></div>
-        <div class="sub"><span>1,877 votes</span><span>Ended Aug 30</span></div>
+        <div class="q">Restless brains: which workout keeps you coming back?</div>
+        <div class="winner"><span class="wname">Short circuits, lots of variety</span><span class="wpct">48%</span></div>
+        <div class="bar"><i style="width:48%"></i></div>
+        <div class="sub"><span>1,523 votes</span><span>Ended Sep 13</span></div>
       </div>
       <div class="past">
-        <div class="q">Rest day: full stop or active recovery?</div>
-        <div class="winner"><span class="wname">Active recovery walk</span><span class="wpct">63%</span></div>
-        <div class="bar"><i style="width:63%"></i></div>
-        <div class="sub"><span>1,592 votes</span><span>Ended Aug 24</span></div>
+        <div class="q">Next reel: which form fix do you need?</div>
+        <div class="winner"><span class="wname">The hip hinge (RDLs)</span><span class="wpct">39%</span></div>
+        <div class="bar"><i style="width:39%"></i></div>
+        <div class="sub"><span>1,390 votes</span><span>Ended Aug 30</span></div>
       </div>
     </div>
+  </div>
+
+  <!-- The sign at the gym -->
+  <div class="section">
+    <div class="section-head"><span>At the gym and in her bio</span></div>
+    <div class="sign">
+      <img src="qr.png" alt="QR code to follow Colette on Zzzap">
+      <div>
+        <div class="s1">&#9889; Follow on Zzzap</div>
+        <div class="s2">Scan to pick what we train next</div>
+        <div class="s3">Quick questions from Colette. Tap an answer, see what everyone picked.</div>
+      </div>
+    </div>
+    <div class="sign-note">On the mirror at Vive Fitness and the link in her Instagram bio. Followers tap it and vote on the next program.</div>
   </div>
 
   <footer>
@@ -310,16 +331,6 @@
 </div>
 
 <script>
-  // Hero image fallback chain: try alternate stock photos, then a styled gradient.
-  const heroAlts = [
-    "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=900&q=80&fit=crop",
-    "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=900&q=80&fit=crop"
-  ];
-  function heroFallback(img) {
-    const next = heroAlts.shift();
-    if (next) { img.src = next; }
-    else { img.remove(); }
-  }
   function iconFallback(img, label) {
     const span = document.createElement("span");
     span.className = "label";
@@ -341,7 +352,7 @@
       options.forEach(o => {
         o.querySelector(".fill").style.width = o.dataset.pct + "%";
       });
-      document.getElementById("count").textContent = "1,284 votes so far";
+      document.getElementById("count").textContent = "1,413 votes so far";
     });
   });
 </script>
