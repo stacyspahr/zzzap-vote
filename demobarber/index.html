@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Throne Barbershop · Zzzap</title>
+<style>
+  :root {
+    --yellow: #FFD60A;
+    --bg: #0a0a0f;
+    --card: #16161d;
+    --card2: #1d1d26;
+    --text: #f5f5f7;
+    --dim: #9a9aa3;
+    --dimmer: #55555e;
+    --radius: 22px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+  }
+  .phone {
+    width: 100%;
+    max-width: 430px;
+    background: var(--bg);
+    min-height: 100vh;
+    box-shadow: 0 0 80px rgba(0,0,0,.8);
+  }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative;
+    /* The only good photo is small and wide, so the hero keeps the photo's own
+       shape and the name sits below it instead of over a stretched portrait. */
+    aspect-ratio: 1000 / 697;
+    overflow: hidden;
+    background: linear-gradient(160deg, #2a1a12 0%, #1a1512 60%, #0a0a0f 100%);
+  }
+  .hero img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .hero::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10,10,15,0) 55%, rgba(10,10,15,.6) 82%, var(--bg) 100%);
+    pointer-events: none;
+  }
+  .hero-content {
+    position: relative;
+    margin-top: -18px;
+    padding: 0 22px 4px;
+    z-index: 2;
+  }
+
+  .brand-mark { width: 120px; height: auto; display: block; margin: 4px 0 12px; opacity: .95; }
+  .founders { color: var(--dim); font-size: 14px; font-weight: 600; margin-top: 4px; }
+
+  /* ---------- Throne Fam ---------- */
+  .fam .f1 { font-size: 16px; font-weight: 700; }
+  .fam .f2 { color: var(--dim); font-size: 13.5px; margin-top: 6px; line-height: 1.4; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .chip {
+    background: var(--card2); border: 1px solid #2a2a34; border-radius: 100px;
+    padding: 6px 12px; font-size: 13px; font-weight: 600;
+  }
+  .chip.more { color: var(--dim); }
+  .fam .example {
+    margin-top: 14px; padding: 12px 14px;
+    background: var(--card2); border: 1px solid #2a2a34; border-radius: 14px;
+    font-size: 13.5px; line-height: 1.4;
+  }
+  .fam .example b { color: var(--yellow); font-weight: 700; }
+
+  /* ---------- Credential ---------- */
+  .award {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--card);
+    border: 1px solid #23232c;
+    border-radius: var(--radius);
+    padding: 14px 18px 14px 14px;
+  }
+  .award img { width: 64px; height: auto; border-radius: 6px; flex-shrink: 0; }
+  .award .a1 { font-size: 15px; font-weight: 700; line-height: 1.3; }
+  .award .a2 { color: var(--dim); font-size: 13px; margin-top: 4px; line-height: 1.35; }
+  .creator-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(255, 214, 10, .14);
+    border: 1px solid rgba(255, 214, 10, .35);
+    backdrop-filter: blur(12px);
+    color: var(--yellow);
+    font-size: 12px; font-weight: 600; letter-spacing: .04em;
+    padding: 5px 12px; border-radius: 100px;
+    margin-bottom: 10px;
+  }
+  h1.name {
+    font-family: -apple-system, "SF Pro Display", sans-serif;
+    font-size: 40px; font-weight: 800; letter-spacing: -0.02em;
+    line-height: 1.05;
+    text-shadow: 0 2px 24px rgba(0,0,0,.5);
+  }
+  .handle { color: rgba(245,245,247,.75); font-size: 16px; font-weight: 500; margin-top: 4px; }
+  .bio { color: rgba(245,245,247,.85); font-size: 14px; margin-top: 8px; max-width: 32ch; line-height: 1.4; }
+
+  /* ---------- Socials ---------- */
+  .socials {
+    display: flex; gap: 12px; justify-content: center;
+    padding: 18px 22px 6px;
+  }
+  .socials a {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: var(--card2);
+    border: 1px solid #26262f;
+    display: flex; align-items: center; justify-content: center;
+    text-decoration: none;
+    transition: transform .15s ease, border-color .15s ease;
+  }
+  .socials a:active { transform: scale(.92); }
+  .socials img { width: 19px; height: 19px; }
+  .socials .label { font-size: 10px; color: var(--dim); font-weight: 700; }
+
+  /* ---------- Sections ---------- */
+  .section { padding: 18px 16px 0; }
+  .section-head {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; font-weight: 700; letter-spacing: .08em;
+    color: var(--dim); text-transform: uppercase;
+    padding: 0 6px 10px;
+  }
+
+  /* ---------- Live card ---------- */
+  .card {
+    background: var(--card);
+    border: 1px solid #23232c;
+    border-radius: var(--radius);
+    padding: 20px 18px;
+  }
+  .live-card { border-color: rgba(255,214,10,.28); box-shadow: 0 0 40px rgba(255,214,10,.05); }
+  .live-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .live-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    color: var(--yellow); font-size: 12px; font-weight: 800; letter-spacing: .1em;
+  }
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--yellow);
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255,214,10,.5); }
+    50% { box-shadow: 0 0 0 7px rgba(255,214,10,0); }
+  }
+  .ends { color: var(--dim); font-size: 12.5px; font-weight: 500; }
+  .question {
+    font-family: -apple-system, "SF Pro Display", sans-serif;
+    font-size: 22px; font-weight: 700; letter-spacing: -0.01em;
+    line-height: 1.25; margin-bottom: 16px;
+  }
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option {
+    position: relative;
+    width: 100%;
+    background: var(--card2);
+    border: 1px solid #2a2a34;
+    border-radius: 14px;
+    padding: 15px 16px;
+    font-size: 15.5px; font-weight: 600; color: var(--text);
+    text-align: left;
+    cursor: pointer;
+    overflow: hidden;
+    font-family: inherit;
+    transition: border-color .15s ease, transform .1s ease;
+  }
+  .option:active { transform: scale(.985); }
+  .option .fill {
+    position: absolute; inset: 0;
+    width: 0%;
+    background: rgba(255,214,10,.13);
+    border-radius: 13px;
+    transition: width .8s cubic-bezier(.25,.9,.3,1);
+  }
+  .option .row { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .option .pct { font-variant-numeric: tabular-nums; color: var(--dim); font-weight: 700; opacity: 0; transition: opacity .4s ease .3s; }
+  .voted .option { cursor: default; }
+  .voted .option .pct { opacity: 1; }
+  .voted .option.mine { border-color: rgba(255,214,10,.55); }
+  .voted .option.mine .pct { color: var(--yellow); }
+  .check { display: none; color: var(--yellow); font-weight: 800; margin-right: 2px; }
+  .voted .option.mine .check { display: inline; }
+  .meta {
+    display: flex; justify-content: space-between; align-items: center;
+    color: var(--dim); font-size: 12.5px; margin-top: 14px; padding: 0 2px;
+  }
+  .meta .you { color: var(--yellow); font-weight: 600; opacity: 0; transition: opacity .4s ease .4s; }
+  .voted .meta .you { opacity: 1; }
+
+  /* ---------- Post-vote follow strip ---------- */
+  .follow-strip {
+    display: none;
+    margin-top: 14px;
+    background: linear-gradient(135deg, rgba(255,214,10,.12), rgba(255,214,10,.04));
+    border: 1px solid rgba(255,214,10,.25);
+    border-radius: 16px;
+    padding: 14px 16px;
+    align-items: center; gap: 12px;
+  }
+  .voted-page .follow-strip { display: flex; }
+  .follow-strip .txt { flex: 1; }
+  .follow-strip .t1 { font-size: 14.5px; font-weight: 700; }
+  .follow-strip .t2 { font-size: 12.5px; color: var(--dim); margin-top: 2px; }
+  .get-btn {
+    background: var(--yellow); color: #1a1400;
+    font-size: 13.5px; font-weight: 800;
+    border: none; border-radius: 100px;
+    padding: 10px 16px; cursor: pointer;
+    font-family: inherit;
+    white-space: nowrap;
+  }
+
+  /* ---------- Archive ---------- */
+  .archive { display: flex; flex-direction: column; gap: 10px; }
+  .past {
+    background: var(--card);
+    border: 1px solid #1f1f28;
+    border-radius: 18px;
+    padding: 16px 18px;
+  }
+  .past .q { font-size: 15.5px; font-weight: 650; color: rgba(245,245,247,.92); line-height: 1.3; }
+  .past .winner {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 10px; font-size: 14px;
+  }
+  .past .wname { color: var(--yellow); font-weight: 700; }
+  .past .wpct { color: var(--dim); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .past .bar { height: 5px; background: #23232c; border-radius: 3px; margin-top: 8px; overflow: hidden; }
+  .past .bar i { display: block; height: 100%; background: rgba(255,214,10,.55); border-radius: 3px; }
+  .past .sub { display: flex; justify-content: space-between; color: var(--dimmer); font-size: 12px; margin-top: 9px; }
+
+  /* ---------- Footer ---------- */
+  footer {
+    text-align: center;
+    padding: 34px 20px 40px;
+    color: var(--dimmer);
+  }
+  .bolts { line-height: 0; margin-bottom: 10px; }
+  .tagline { font-size: 13px; font-weight: 600; color: var(--dim); }
+  .legal { font-size: 11px; margin-top: 10px; }
+  footer a { color: var(--dimmer); }
+
+  /* ---------- Front-desk QR sign ---------- */
+  .sign {
+    background: #f5f5f7;
+    color: #111;
+    border-radius: var(--radius);
+    padding: 22px 20px 20px;
+    display: flex; align-items: center; gap: 18px;
+  }
+  .sign > img { width: 112px; height: 112px; image-rendering: pixelated; flex-shrink: 0; }
+  .sign .s1 { font-size: 11.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: #6b6b73; }
+  .sign .s2 { font-size: 19px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.2; margin-top: 4px; }
+  .sign .s3 { font-size: 13px; color: #55555e; margin-top: 6px; line-height: 1.35; }
+  .sign-note { color: var(--dim); font-size: 12.5px; text-align: center; margin-top: 10px; padding: 0 12px; }
+</style>
+</head>
+<body>
+<div class="phone" id="page">
+
+  <div class="hero">
+    <img src="owners.jpg" alt="Throne founders Bobby O'Dell and Sang Nguyen in the shop">
+  </div>
+  <div class="hero-content">
+    <div class="creator-badge">Barbershop &middot; Zzzap Creator</div>
+    <img class="brand-mark" src="logo.png" alt="Throne">
+    <h1 class="name">Throne Barbershop</h1>
+    <div class="founders">Sang Nguyen &amp; Bobby O'Dell</div>
+    <div class="handle">zzzap.app/@thronepdx</div>
+    <div class="bio">Top-shelf haircuts, straight razor shaves and booze. Three Portland shops since 2014. This seat is yours.</div>
+  </div>
+
+  <div class="socials">
+    <a href="#" aria-label="Instagram"><img src="https://cdn.simpleicons.org/instagram/f5f5f7" alt="Instagram" onerror="iconFallback(this,'IG')"></a>
+    <a href="#" aria-label="Facebook"><img src="https://cdn.simpleicons.org/facebook/f5f5f7" alt="Facebook" onerror="iconFallback(this,'FB')"></a>
+    <a href="#" aria-label="Yelp"><img src="https://cdn.simpleicons.org/yelp/f5f5f7" alt="Yelp" onerror="iconFallback(this,'Y')"></a>
+    <a href="#" aria-label="Website"><img src="https://cdn.simpleicons.org/googlechrome/f5f5f7" alt="Website" onerror="iconFallback(this,'&#127760;')"></a>
+  </div>
+
+  <!-- Live zzzap -->
+  <div class="section">
+    <div class="section-head"><span>Live now</span></div>
+    <div class="card live-card" id="livecard">
+      <div class="live-row">
+        <span class="live-pill"><span class="dot"></span>LIVE</span>
+        <span class="ends">Ends in 2d 7h</span>
+      </div>
+      <div class="question">We're adding one thing this winter. What should it be?</div>
+      <div class="options" id="options">
+        <button class="option" data-pct="35"><span class="fill"></span><span class="row"><span><span class="check">&#10003; </span>Hot towel scalp massage</span><span class="pct">35%</span></span></button>
+        <button class="option" data-pct="28"><span class="fill"></span><span class="row"><span><span class="check">&#10003; </span>Late nights Thursdays, till 10</span><span class="pct">28%</span></span></button>
+        <button class="option" data-pct="22"><span class="fill"></span><span class="row"><span><span class="check">&#10003; </span>Gray blending</span><span class="pct">22%</span></span></button>
+        <button class="option" data-pct="15"><span class="fill"></span><span class="row"><span><span class="check">&#10003; </span>Beard care kits to take home</span><span class="pct">15%</span></span></button>
+      </div>
+      <div class="meta">
+        <span class="you">&#10003; You voted</span>
+        <span id="count">583 votes so far</span>
+      </div>
+      <div class="follow-strip">
+        <div class="txt">
+          <div class="t1">Never miss Throne's next question</div>
+          <div class="t2">Get Zzzap and their zzzaps land on your lock screen</div>
+        </div>
+        <button class="get-btn">Get Zzzap</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Archive -->
+  <div class="section">
+    <div class="section-head"><span>Past zzzaps</span></div>
+    <div class="archive">
+      <div class="past">
+        <div class="q">Next bottle on the top shelf. You pick.</div>
+        <div class="winner"><span class="wname">Oregon bourbon</span><span class="wpct">36%</span></div>
+        <div class="bar"><i style="width:36%"></i></div>
+        <div class="sub"><span>671 votes</span><span>Ended Sep 26</span></div>
+      </div>
+      <div class="past">
+        <div class="q">Next reel: which cut should we break down?</div>
+        <div class="winner"><span class="wname">Skin fade with a hard part</span><span class="wpct">41%</span></div>
+        <div class="bar"><i style="width:41%"></i></div>
+        <div class="sub"><span>604 votes</span><span>Ended Sep 12</span></div>
+      </div>
+      <div class="past">
+        <div class="q">This month's shop playlist?</div>
+        <div class="winner"><span class="wname">90s hip hop</span><span class="wpct">44%</span></div>
+        <div class="bar"><i style="width:44%"></i></div>
+        <div class="sub"><span>552 votes</span><span>Ended Aug 29</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Every barber can zzzap their own clients -->
+  <div class="section">
+    <div class="section-head"><span>The Throne Fam</span></div>
+    <div class="card fam">
+      <div class="f1">Every barber gets their own page</div>
+      <div class="f2">The shop asks everyone. Each barber in the Fam can also ask their own regulars.</div>
+      <div class="chips">
+        <span class="chip">Levi</span><span class="chip">Nathan</span><span class="chip">Marcos</span>
+        <span class="chip">Binh</span><span class="chip">Danielle</span><span class="chip more">+8 more</span>
+      </div>
+      <div class="example"><b>From your barber:</b> "Same as last time, or ready to try something new?"</div>
+    </div>
+  </div>
+
+  <!-- The sign at every station -->
+  <div class="section">
+    <div class="section-head"><span>At every chair</span></div>
+    <div class="sign">
+      <img src="qr.png" alt="QR code to follow Throne on Zzzap">
+      <div>
+        <div class="s1"><img src="/zzzap-bolts.svg" alt="" width="16" height="14" style="vertical-align:-2px;margin-right:3px">Follow on Zzzap</div>
+        <div class="s2">Scan to vote on what's next at Throne</div>
+        <div class="s3">Quick questions from the shop. Tap an answer, see what everyone picked.</div>
+      </div>
+    </div>
+    <div class="sign-note">On the mirror at every station in all three shops. Clients scan it while they're in the chair.</div>
+  </div>
+
+  <footer>
+    <div class="bolts"><img src="/zzzap-bolts.svg" alt="Zzzap" width="34" height="30"></div>
+    <div class="tagline">Trusted Sources. Real Decisions.</div>
+    <div class="legal">Zzzap by Rhapsy LLC &middot; <a href="#">Privacy</a> &middot; <a href="#">Terms</a></div>
+  </footer>
+</div>
+
+<script>
+  function iconFallback(img, label) {
+    const span = document.createElement("span");
+    span.className = "label";
+    span.innerHTML = label;
+    img.replaceWith(span);
+  }
+
+  // Submit-first-then-see: results are hidden until the visitor votes.
+  const card = document.getElementById("livecard");
+  const options = document.querySelectorAll(".option");
+  let voted = false;
+  options.forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (voted) return;
+      voted = true;
+      btn.classList.add("mine");
+      card.classList.add("voted");
+      document.getElementById("page").classList.add("voted-page");
+      options.forEach(o => {
+        o.querySelector(".fill").style.width = o.dataset.pct + "%";
+      });
+      document.getElementById("count").textContent = "584 votes so far";
+    });
+  });
+</script>
+</body>
+</html>
