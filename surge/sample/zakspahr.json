@@ -1,0 +1,22 @@
+{
+  "handle": "zakspahr",
+  "displayName": "Spahrz",
+  "category": "Games",
+  "bio": "I game to be with my people. Online or IRL, consoles to card tables. Magic: The Gathering is my current obsession. Pull up a chair.",
+  "photoURL": "/surge/sample/zakspahr.jpg",
+  "links": {
+    "instagram": "zakspahr",
+    "facebook": "zak.spahriii"
+  },
+  "live": {
+    "pollId": "sample-zak-closed",
+    "question": "Friday Commander night: which deck do I bring?",
+    "options": ["Dragons", "Elves", "Zombies"],
+    "sampleCounts": [48, 22, 35],
+    "endsAt": "-2h"
+  },
+  "past": [
+    { "question": "Best board game for 6 people who don't usually game?", "winner": "Codenames", "winnerPct": 41, "votes": 158, "endedAt": "2026-10-10" },
+    { "question": "Next set to draft at the local shop?", "winner": "The newest one", "winnerPct": 57, "votes": 121, "endedAt": "2026-10-03" }
+  ]
+}
