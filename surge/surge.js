@@ -152,15 +152,29 @@
     const name = page.displayName || page.handle;
     document.title = `${name} · ${page.category ? page.category + " · " : ""}Zzzap`;
 
+    // Page style, same choices as the app's Page Style screen:
+    // header poster | banner | minimal, name classic | rounded | serif.
+    const style = page.style || {};
+    const header = ["poster", "banner", "minimal"].includes(style.header) ? style.header : "poster";
+    const nameStyle = ["classic", "rounded", "serif"].includes(style.name) ? style.name : "classic";
+    root.className = `phone header-${header} name-${nameStyle}`;
+
     // Header photo + identity, like the app's SurgeHeroPhoto.
     const hero = el("div", "hero");
-    if (page.photoURL) {
+    const headerPhoto = page.headerPhotoURL || page.photoURL;
+    if (headerPhoto && header !== "minimal") {
       const img = el("img");
-      img.src = page.photoURL;
+      img.src = headerPhoto;
       img.alt = name;
       hero.append(img);
     }
     const identity = el("div", "identity");
+    if (header === "minimal" && page.photoURL) {
+      const avatar = el("img", "avatar");
+      avatar.src = page.photoURL;
+      avatar.alt = name;
+      identity.append(avatar);
+    }
     identity.append(el("h1", "name", name));
     identity.append(el("div", "handle", `@${page.handle}`));
     identity.append(el("div", "badge", page.category ? `${page.category} · Surge` : "Surge"));

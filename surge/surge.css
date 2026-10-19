@@ -259,3 +259,18 @@ footer { text-align: center; padding: 34px 20px 40px; color: var(--dimmer); }
 .tagline { font-size: 13px; font-weight: 600; color: var(--dim); }
 .legal { font-size: 11px; margin-top: 10px; }
 footer a { color: var(--dimmer); }
+
+/* ---------- Page styles (same as the app's Page Style) ---------- */
+/* Banner: a shorter photo strip, name just below it. */
+.header-banner .hero { aspect-ratio: 16 / 10; max-height: 42vh; }
+.header-banner .identity { margin-top: -28px; }
+/* Minimal: no big photo, the round photo above the name. */
+.header-minimal .hero { display: none; }
+.header-minimal .identity { margin-top: 0; padding-top: 48px; }
+.avatar {
+  width: 132px; height: 132px; border-radius: 50%;
+  object-fit: cover; display: block; margin: 0 auto 14px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.45);
+}
+.name-rounded h1.name { font-family: ui-rounded, "SF Pro Rounded", -apple-system, sans-serif; font-weight: 900; }
+.name-serif h1.name { font-family: ui-serif, "New York", Georgia, serif; font-weight: 700; letter-spacing: -0.01em; }
