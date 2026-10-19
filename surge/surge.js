@@ -259,7 +259,9 @@
         btn.classList.toggle("mine", i === mine);
       });
       you.textContent = mine === null ? "" : "✓ You voted";
-      count.textContent = `${total} ${total === 1 ? "vote" : "votes"}`;
+      // Visitors see percentages, never counts; the creator sees counts in
+      // the app (Stacy, 2026-10-18), so a new account never reads as empty.
+      count.textContent = ended ? "Final results" : "Live results";
       get.classList.remove("hidden");
     }
 
@@ -330,7 +332,7 @@
       fill.style.width = `${Math.max(0, Math.min(100, item.winnerPct))}%`;
       bar.append(fill);
       const sub = el("div", "sub");
-      sub.append(el("span", null, `${item.votes} votes`), el("span", null, `Ended ${formatDate(item.endedAt)}`));
+      sub.append(el("span", null, "Final results"), el("span", null, `Ended ${formatDate(item.endedAt)}`));
       card.append(w, bar, sub);
       list.append(card);
     }
