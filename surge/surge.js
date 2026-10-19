@@ -156,8 +156,10 @@
     // header poster | banner | minimal, name classic | rounded | serif.
     const style = page.style || {};
     const header = ["poster", "banner", "minimal"].includes(style.header) ? style.header : "poster";
-    const nameStyle = ["classic", "rounded", "serif"].includes(style.name) ? style.name : "classic";
-    root.className = `phone header-${header} name-${nameStyle}`;
+    const rawName = style.name === "serif" ? "elegant" : style.name;
+    const nameStyle = ["classic", "bold", "tall", "elegant", "mono", "rounded"].includes(rawName) ? rawName : "classic";
+    const nameColor = ["white", "yellow", "orange", "pink", "mint", "lavender"].includes(style.nameColor) ? style.nameColor : "white";
+    root.className = `phone header-${header} name-${nameStyle} color-${nameColor}`;
 
     // Header photo + identity, like the app's SurgeHeroPhoto.
     const hero = el("div", "hero");

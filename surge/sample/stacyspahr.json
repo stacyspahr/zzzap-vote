@@ -2,7 +2,7 @@
   "handle": "stacyspahr",
   "displayName": "Stacy",
   "category": "Tech",
-  "bio": "Always first to try it. Phones, apps, smart home, AI. Ask me what's worth your money.",
+  "bio": "Tech for real life, not for tech's sake. I test the new stuff early and tell everyday people what's worth it.",
   "photoURL": "/surge/sample/stacyspahr.jpg",
   "links": {
     "instagram": "rhapsycats",
@@ -13,13 +13,41 @@
   "live": {
     "pollId": "sample-stacy-live",
     "question": "New phone day is coming. What actually matters most to you?",
-    "options": ["Battery life", "Camera", "Price", "The AI features"],
-    "sampleCounts": [61, 38, 44, 17],
+    "options": [
+      "Battery life",
+      "Camera",
+      "Price",
+      "The AI features"
+    ],
+    "sampleCounts": [
+      61,
+      38,
+      44,
+      17
+    ],
     "endsAt": "+30h"
   },
   "past": [
-    { "question": "Smart home: where should a beginner start?", "winner": "Smart lights", "winnerPct": 46, "votes": 212, "endedAt": "2026-10-11" },
-    { "question": "Which AI assistant do you actually use every day?", "winner": "The one built into my phone", "winnerPct": 52, "votes": 187, "endedAt": "2026-10-04" },
-    { "question": "Would you buy smart glasses this year?", "winner": "Not yet", "winnerPct": 63, "votes": 240, "endedAt": "2026-09-27" }
+    {
+      "question": "Smart home: where should a beginner start?",
+      "winner": "Smart lights",
+      "winnerPct": 46,
+      "votes": 212,
+      "endedAt": "2026-10-11"
+    },
+    {
+      "question": "Which AI assistant do you actually use every day?",
+      "winner": "The one built into my phone",
+      "winnerPct": 52,
+      "votes": 187,
+      "endedAt": "2026-10-04"
+    },
+    {
+      "question": "Would you buy smart glasses this year?",
+      "winner": "Not yet",
+      "winnerPct": 63,
+      "votes": 240,
+      "endedAt": "2026-09-27"
+    }
   ]
 }

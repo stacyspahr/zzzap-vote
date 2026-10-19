@@ -272,5 +272,14 @@ footer a { color: var(--dimmer); }
   object-fit: cover; display: block; margin: 0 auto 14px;
   box-shadow: 0 6px 24px rgba(0,0,0,.45);
 }
+.name-bold h1.name { font-weight: 900; font-stretch: expanded; letter-spacing: 0.02em; }
+.name-tall h1.name { font-family: "SF Pro Display Condensed", "Arial Narrow", Impact, sans-serif; font-weight: 900; font-stretch: condensed; font-size: 40px; letter-spacing: -0.01em; }
+.name-elegant h1.name { font-family: ui-serif, "New York", Georgia, serif; font-weight: 400; font-style: italic; letter-spacing: 0; }
+.name-mono h1.name { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-weight: 700; font-size: 30px; letter-spacing: 0; }
 .name-rounded h1.name { font-family: ui-rounded, "SF Pro Rounded", -apple-system, sans-serif; font-weight: 900; }
-.name-serif h1.name { font-family: ui-serif, "New York", Georgia, serif; font-weight: 700; letter-spacing: -0.01em; }
+/* Name color, same palette as the app (SurgeNameColor) */
+.color-yellow h1.name { color: #FFD60A; }
+.color-orange h1.name { color: #FF9E3D; }
+.color-pink h1.name { color: #FF7AA8; }
+.color-mint h1.name { color: #6BE6B8; }
+.color-lavender h1.name { color: #BDA8FF; }
