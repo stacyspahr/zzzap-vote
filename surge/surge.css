@@ -99,6 +99,8 @@ h1.name {
   padding: 5px 12px; border-radius: 100px;
 }
 .bio {
+  /* Keep the line breaks the creator typed in the app. */
+  white-space: pre-line;
   color: rgba(245,245,247,.9);
   font-size: 15px; line-height: 1.4;
   margin: 14px auto 0;
