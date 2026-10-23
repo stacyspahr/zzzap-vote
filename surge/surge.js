@@ -240,7 +240,11 @@
     document.getElementById("page").replaceChildren(box, footer());
   }
 
+  // Bumped on every redraw so timers from an older drawing stop themselves.
+  let renderGen = 0;
+
   function renderPage(page) {
+    renderGen += 1;
     const root = document.getElementById("page");
     const name = page.displayName || page.handle;
     document.title = `${name} · ${page.category ? page.category + " · " : ""}Zzzap`;
@@ -318,6 +322,8 @@
   function liveSection(page) {
     const live = page.live;
     const ended = !timeLeft(live.endsAt);
+    const gen = renderGen;
+    const stale = () => gen !== renderGen;
     const section = el("div", "section");
     section.append(el("div", "section-head", ended ? "Just ended" : "Live now"));
 
@@ -387,6 +393,7 @@
       if (refreshing) return;
       refreshing = true;
       const refresh = setInterval(async () => {
+        if (stale()) { clearInterval(refresh); return; }
         if (document.hidden) return;
         try {
           const r = await api.resultsFor(page);
@@ -429,6 +436,7 @@
       }));
       // Keep the countdown honest while the page is open.
       const timer = setInterval(() => {
+        if (stale()) { clearInterval(timer); return; }
         const left = timeLeft(live.endsAt);
         if (left) { ends.textContent = left; return; }
         clearInterval(timer);
@@ -508,7 +516,28 @@
 
   const handle = handleFromAddress();
   if (!handle) { renderNotFound(); return; }
+  // A page left open picks up a new zzzap, or one that just ended, by
+  // re-reading the page every 30 seconds while it's in front. It only
+  // redraws when the live zzzap or the past list changed, so a vote in
+  // progress is never wiped.
+  const pageKey = page => JSON.stringify([page.live && page.live.pollId, (page.past || []).length]);
   api.loadPage(handle)
-    .then(page => (page ? renderPage(page) : renderNotFound()))
+    .then(page => {
+      if (!page) { renderNotFound(); return; }
+      renderPage(page);
+      let shown = pageKey(page);
+      setInterval(async () => {
+        if (document.hidden) return;
+        try {
+          const fresh = await api.loadPage(handle);
+          if (fresh && pageKey(fresh) !== shown) {
+            shown = pageKey(fresh);
+            renderPage(fresh);
+          }
+        } catch {
+          // Try again on the next tick.
+        }
+      }, 30000);
+    })
     .catch(renderNotFound);
 })();
