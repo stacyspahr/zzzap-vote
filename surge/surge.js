@@ -334,6 +334,10 @@
     const ends = el("span", "ends", ended ? "Voting closed" : timeLeft(live.endsAt));
     row.append(pill, ends);
     card.append(row, el("div", "question", live.question));
+    // Results are hidden until you vote. Say so, so the plain answer list
+    // doesn't read as "no votes yet" or a page that hasn't updated.
+    const hint = el("p", "hint", "Vote to see how everyone answered.");
+    if (!ended && api.myVote(page) === null) card.append(hint);
 
     const options = el("div", "options");
     const buttons = live.options.map((text, i) => {
@@ -364,6 +368,7 @@
     function showResults(counts, mine, closedNow) {
       const pcts = percentages(counts.map(c => c || 0));
       card.classList.add("results");
+      hint.remove();
       buttons.forEach((btn, i) => {
         const pct = pcts[i];
         btn.disabled = true;
@@ -419,7 +424,7 @@
           get.classList.remove("hidden");
         });
     } else {
-      count.textContent = "Tap an answer to vote";
+      count.textContent = "";
       buttons.forEach((btn, i) => btn.addEventListener("click", async () => {
         buttons.forEach(b => (b.disabled = true));
         error.classList.add("hidden");

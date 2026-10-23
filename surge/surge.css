@@ -204,6 +204,8 @@ h1.name {
   color: var(--dim); font-size: 12.5px; margin-top: 14px; padding: 0 2px;
 }
 .meta .you { color: var(--yellow); font-weight: 600; }
+/* Before you vote: results are hidden, and the page says so. */
+.hint { color: var(--dim); font-size: 13.5px; margin: -4px 0 14px; }
 .error { color: #ff6b6b; font-size: 13px; margin-top: 12px; }
 
 /* ---------- Get Zzzap (after a vote, or on a missed zzzap) ---------- */
