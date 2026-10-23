@@ -376,6 +376,27 @@
       }
       count.textContent = ended || closedNow ? "Final results" : "Live results";
       get.classList.remove("hidden");
+      if (!ended && !closedNow) keepResultsLive();
+    }
+
+    // After voting, keep the totals moving while the page is open and in
+    // front. Each refresh is one castVote call that re-sends this browser's
+    // own vote, so nothing is counted twice.
+    let refreshing = false;
+    function keepResultsLive() {
+      if (refreshing) return;
+      refreshing = true;
+      const refresh = setInterval(async () => {
+        if (document.hidden) return;
+        try {
+          const r = await api.resultsFor(page);
+          const closed = !timeLeft(live.endsAt);
+          showResults(r.counts, r.mine, closed);
+          if (closed) clearInterval(refresh);
+        } catch {
+          // Missed one; try again on the next tick.
+        }
+      }, 10000);
     }
 
     const already = api.myVote(page);
