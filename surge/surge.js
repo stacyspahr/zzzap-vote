@@ -5,18 +5,30 @@
 // loads that Surge account's public page, and renders it the same way the
 // app's Surge profile looks.
 //
-// All data goes through `api` below. Today it reads sample files
-// (surge/sample/<handle>.json) and voting stays in this browser. When Zak's
-// server half is live, only `api` changes:
-//   loadPage(handle)  -> the account's cached public page (one read per
-//                        visitor, no live queries; BACKLOG 2026-09-10 cost rule)
-//   castVote(id, i)   -> his one-vote-per-person function; returns results
+// All data goes through `api` below:
+//   loadPage(handle)  -> surgePages/{handle}, the account's public page that
+//                        Zak's server keeps up to date (one read per visitor,
+//                        no live queries; BACKLOG 2026-09-10 cost rule)
+//   castVote(page, i) -> Zak's castVote function: one vote per browser
+//                        (Firebase anonymous sign-in); returns the totals
 // Results stay hidden until you vote (submit first, then see).
+// Add ?sample to the address to see the old sample pages
+// (surge/sample/<handle>.json), where votes stay in this browser.
 
 (function () {
   "use strict";
 
   const APP_STORE = "https://apps.apple.com/app/id6761918562";
+  const SDK = "https://www.gstatic.com/firebasejs/10.13.2";
+  // Same web app as the admin site (zzzap-website/admin/index.html).
+  const FIREBASE_CONFIG = {
+    apiKey: "AIzaSyBaTfoiq1UN0GtRgf1k6BO3tY7vcm1g0Eg",
+    authDomain: "spahrzap.firebaseapp.com",
+    projectId: "spahrzap",
+    storageBucket: "spahrzap.firebasestorage.app",
+    messagingSenderId: "838021448718",
+    appId: "1:838021448718:web:fcb8b87db61d8b7786685f",
+  };
   const ICONS = {
     instagram: { name: "Instagram", url: u => `https://www.instagram.com/${u}` },
     tiktok: { name: "TikTok", url: u => `https://www.tiktok.com/@${u}` },
@@ -28,7 +40,7 @@
 
   // ---------- Data ----------
 
-  const api = {
+  const sampleApi = {
     mode: "sample",
 
     async loadPage(handle) {
@@ -55,14 +67,95 @@
       return saved === null ? null : parseInt(saved, 10);
     },
 
-    resultsFor(page) {
+    async resultsFor(page) {
       // Same totals as right after voting: the sample counts plus your vote.
       const counts = page.live.sampleCounts.slice();
       const mine = this.myVote(page);
       if (mine !== null && mine >= 0 && mine < counts.length) counts[mine] += 1;
-      return counts;
+      return { counts, mine };
     },
   };
+
+  // Firebase loads only on real pages, and the anonymous sign-in only happens
+  // when someone votes or needs results, so a visitor who just looks costs
+  // one read.
+  let firebase = null;
+  function loadFirebase() {
+    if (!firebase) {
+      firebase = Promise.all([
+        import(`${SDK}/firebase-app.js`),
+        import(`${SDK}/firebase-firestore-lite.js`),
+      ]).then(([appMod, store]) => {
+        const app = appMod.initializeApp(FIREBASE_CONFIG);
+        return { app, store, db: store.getFirestore(app) };
+      });
+    }
+    return firebase;
+  }
+
+  let signedIn = null;
+  function callCastVote(pollId, optionIndex) {
+    if (!signedIn) {
+      signedIn = loadFirebase().then(async ({ app }) => {
+        const [authMod, fnMod] = await Promise.all([
+          import(`${SDK}/firebase-auth.js`),
+          import(`${SDK}/firebase-functions.js`),
+        ]);
+        const auth = authMod.getAuth(app);
+        // The same anonymous account every visit is what makes it one vote
+        // per browser.
+        await auth.authStateReady();
+        if (!auth.currentUser) await authMod.signInAnonymously(auth);
+        return fnMod.httpsCallable(fnMod.getFunctions(app), "castVote");
+      });
+      signedIn.catch(() => { signedIn = null; });
+    }
+    return signedIn.then(castVote => castVote({ pollId, optionIndex })).then(r => r.data);
+  }
+
+  const liveApi = {
+    mode: "live",
+
+    async loadPage(handle) {
+      const { store, db } = await loadFirebase();
+      const snap = await store.getDoc(store.doc(db, "surgePages", handle));
+      if (!snap.exists()) return null;
+      const page = snap.data();
+      // The server sets `live` to null when a zzzap ends.
+      if (page.live && (!page.live.pollId || !Array.isArray(page.live.options) || !page.live.endsAt)) {
+        page.live = null;
+      }
+      page.past = (page.past || []).filter(item => item && item.question && item.endedAt);
+      return page;
+    },
+
+    async castVote(page, optionIndex) {
+      const result = await callCastVote(page.live.pollId, optionIndex);
+      // Already voted from this browser: the server keeps the first vote.
+      const mine = typeof result.mine === "number" ? result.mine : null;
+      if (mine !== null) localStorage.setItem(voteKey(page), String(mine));
+      return { counts: result.counts, mine, closed: result.closed };
+    },
+
+    myVote(page) {
+      return sampleApi.myVote(page);
+    },
+
+    async resultsFor(page) {
+      // The server only hands out totals in answer to a vote. Re-sending this
+      // browser's own vote returns them without counting it twice. -1 is
+      // never a valid answer, so for an ended zzzap it can only return the
+      // final totals, never cast a vote.
+      const mine = this.myVote(page);
+      const result = await callCastVote(page.live.pollId, mine === null ? -1 : mine);
+      return {
+        counts: result.counts,
+        mine: typeof result.mine === "number" ? result.mine : null,
+      };
+    },
+  };
+
+  const api = new URLSearchParams(location.search).has("sample") ? sampleApi : liveApi;
 
   function voteKey(page) { return `zzzap.vote.${page.live.pollId}`; }
 
@@ -262,9 +355,8 @@
     card.append(get);
     section.append(card);
 
-    function showResults(counts, mine) {
-      const total = counts.reduce((a, b) => a + b, 0);
-      const pcts = percentages(counts);
+    function showResults(counts, mine, closedNow) {
+      const pcts = percentages(counts.map(c => c || 0));
       card.classList.add("results");
       buttons.forEach((btn, i) => {
         const pct = pcts[i];
@@ -277,14 +369,27 @@
       you.textContent = mine === null ? "" : "✓ You voted";
       // Visitors see percentages, never counts; the creator sees counts in
       // the app (Stacy, 2026-10-18), so a new account never reads as empty.
-      count.textContent = ended ? "Final results" : "Live results";
+      if (closedNow && !ended) {
+        card.classList.add("closed");
+        pill.lastChild.textContent = "ENDED";
+        ends.textContent = "Voting closed";
+      }
+      count.textContent = ended || closedNow ? "Final results" : "Live results";
       get.classList.remove("hidden");
     }
 
     const already = api.myVote(page);
     if (ended || already !== null) {
       // A missed zzzap is a conversion screen, not an error (2026-09-11).
-      showResults(api.resultsFor(page), already);
+      buttons.forEach(b => (b.disabled = true));
+      count.textContent = "Loading results";
+      api.resultsFor(page)
+        .then(r => showResults(r.counts, r.mine, false))
+        .catch(() => {
+          // Ended a moment ago: the server hasn't closed it yet.
+          count.textContent = ended ? "Final results are on the way" : "";
+          get.classList.remove("hidden");
+        });
     } else {
       count.textContent = "Tap an answer to vote";
       buttons.forEach((btn, i) => btn.addEventListener("click", async () => {
@@ -292,10 +397,12 @@
         error.classList.add("hidden");
         try {
           const result = await api.castVote(page, i);
-          showResults(result.counts, result.mine);
-        } catch {
+          showResults(result.counts, result.mine, result.closed);
+        } catch (err) {
           buttons.forEach(b => (b.disabled = false));
-          error.textContent = "Your vote didn't go through. Try again.";
+          error.textContent = err && err.code === "functions/resource-exhausted"
+            ? "Slow down a moment, then try again."
+            : "Your vote didn't go through. Try again.";
           error.classList.remove("hidden");
         }
       }));
@@ -342,7 +449,7 @@
       const card = el("div", "past");
       card.append(el("div", "q", item.question));
       const w = el("div", "winner");
-      w.append(el("span", "wname", item.winner), el("span", "wpct", `${item.winnerPct}%`));
+      w.append(el("span", "wname", item.winner || "No votes"), el("span", "wpct", `${item.winnerPct || 0}%`));
       const bar = el("div", "bar");
       const fill = el("i");
       fill.style.width = `${Math.max(0, Math.min(100, item.winnerPct))}%`;
