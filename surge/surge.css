@@ -52,10 +52,12 @@ body {
 }
 
 /* ---------- Header photo ---------- */
+/* Poster: the whole 2:3 crop the creator made in the app, which is also
+   how the app shows it (68% of an iPhone screen). No height cap, or the
+   top and bottom get trimmed and the page stops matching the crop. */
 .hero {
   position: relative;
-  aspect-ratio: 4 / 5;
-  max-height: 62vh;
+  aspect-ratio: 2 / 3;
   width: 100%;
   overflow: hidden;
   background: linear-gradient(160deg, #1d1d26 0%, #0a0a0f 100%);
@@ -271,7 +273,9 @@ footer a { color: var(--dimmer); }
 
 /* ---------- Page styles (same as the app's Page Style) ---------- */
 /* Banner: a shorter photo strip, name just below it. */
-.header-banner .hero { aspect-ratio: 16 / 10; max-height: 42vh; }
+/* Same shape as the app's Banner (42% of an iPhone screen), centered on
+   the 2:3 crop the way the app centers it. */
+.header-banner .hero { aspect-ratio: 11 / 10; }
 .header-banner .identity { margin-top: -28px; }
 /* Minimal: no big photo, the round photo above the name. */
 .header-minimal .hero { display: none; }
