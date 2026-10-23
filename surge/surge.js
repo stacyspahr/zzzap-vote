@@ -94,7 +94,9 @@
   }
 
   let signedIn = null;
-  function callCastVote(pollId, optionIndex) {
+  // Loads the sign-in code and signs this browser in. Started as soon as a
+  // finger touches an answer, so the vote itself goes out without the wait.
+  function prepareToVote() {
     if (!signedIn) {
       signedIn = loadFirebase().then(async ({ app }) => {
         const [authMod, fnMod] = await Promise.all([
@@ -110,7 +112,11 @@
       });
       signedIn.catch(() => { signedIn = null; });
     }
-    return signedIn.then(castVote => castVote({ pollId, optionIndex })).then(r => r.data);
+    return signedIn;
+  }
+
+  function callCastVote(pollId, optionIndex) {
+    return prepareToVote().then(castVote => castVote({ pollId, optionIndex })).then(r => r.data);
   }
 
   const liveApi = {
@@ -425,13 +431,22 @@
         });
     } else {
       count.textContent = "";
+      // Get signed in while the finger is still down.
+      if (api === liveApi) {
+        options.addEventListener("pointerdown", () => { prepareToVote().catch(() => {}); }, { once: true });
+      }
       buttons.forEach((btn, i) => btn.addEventListener("click", async () => {
         buttons.forEach(b => (b.disabled = true));
         error.classList.add("hidden");
+        // Show the tap landed right away; results replace this when they arrive.
+        btn.classList.add("picked");
+        count.textContent = "Sending your vote";
         try {
           const result = await api.castVote(page, i);
           showResults(result.counts, result.mine, result.closed);
         } catch (err) {
+          btn.classList.remove("picked");
+          count.textContent = "";
           buttons.forEach(b => (b.disabled = false));
           error.textContent = err && err.code === "functions/resource-exhausted"
             ? "Slow down a moment, then try again."

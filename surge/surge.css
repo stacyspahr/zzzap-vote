@@ -1,3 +1,6 @@
+/* No double-tap-to-zoom: on iPhone a quick tap counts the first time. */
+html { touch-action: manipulation; }
+
 /*
   Surge web page: vote.zzzap-app.com/@handle
   Mirrors the app's Surge profile (SurgeHeroPhoto / SurgeIdentityView):
@@ -170,7 +173,7 @@ h1.name {
   font-size: 22px; font-weight: 700; letter-spacing: -0.01em;
   line-height: 1.25; margin-bottom: 16px;
 }
-.options { display: flex; flex-direction: column; gap: 10px; }
+.options { touch-action: manipulation; display: flex; flex-direction: column; gap: 10px; }
 .option {
   position: relative;
   width: 100%;
@@ -186,6 +189,8 @@ h1.name {
   transition: border-color .15s ease, transform .1s ease;
 }
 .option:active { transform: scale(.985); }
+/* A tapped answer, while the vote is on its way. */
+.option.picked { border-color: rgba(255,214,10,.55); }
 .option:disabled { cursor: default; }
 .option .fill {
   position: absolute; inset: 0;
