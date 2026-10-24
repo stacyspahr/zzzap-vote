@@ -431,22 +431,25 @@
         });
     } else {
       count.textContent = "";
-      // Get signed in while the finger is still down.
-      if (api === liveApi) {
-        options.addEventListener("pointerdown", () => { prepareToVote().catch(() => {}); }, { once: true });
-      }
+      // Get signed in as soon as there's something to vote on, so the tap
+      // only waits for the vote itself.
+      if (api === liveApi) prepareToVote().catch(() => {});
       buttons.forEach((btn, i) => btn.addEventListener("click", async () => {
         buttons.forEach(b => (b.disabled = true));
         error.classList.add("hidden");
         // Show the tap landed right away; results replace this when they arrive.
+        options.classList.add("sending");
         btn.classList.add("picked");
-        count.textContent = "Sending your vote";
+        btn.querySelector(".pct").textContent = "Sending…";
         try {
           const result = await api.castVote(page, i);
+          options.classList.remove("sending");
+          btn.classList.remove("picked");
           showResults(result.counts, result.mine, result.closed);
         } catch (err) {
+          options.classList.remove("sending");
           btn.classList.remove("picked");
-          count.textContent = "";
+          btn.querySelector(".pct").textContent = "";
           buttons.forEach(b => (b.disabled = false));
           error.textContent = err && err.code === "functions/resource-exhausted"
             ? "Slow down a moment, then try again."

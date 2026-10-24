@@ -193,8 +193,16 @@ h1.name {
   transition: border-color .15s ease, transform .1s ease;
 }
 .option:active { transform: scale(.985); }
-/* A tapped answer, while the vote is on its way. */
-.option.picked { border-color: rgba(255,214,10,.55); }
+/* A tapped answer, while the vote is on its way: it glows and says
+   "Sending…", and the other answers step back. */
+.option { transition: border-color .15s ease, transform .1s ease, opacity .2s ease; }
+.sending .option:not(.picked) { opacity: .4; }
+.option.picked { border-color: var(--yellow); animation: sending 1.2s ease-in-out infinite; }
+.option.picked .pct { opacity: 1; color: var(--yellow); transition: none; }
+@keyframes sending {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(255,214,10,.45); }
+  50% { box-shadow: 0 0 0 6px rgba(255,214,10,0); }
+}
 .option:disabled { cursor: default; }
 .option .fill {
   position: absolute; inset: 0;
