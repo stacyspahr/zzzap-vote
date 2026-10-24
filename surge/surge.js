@@ -11,7 +11,8 @@
 //                        no live queries; BACKLOG 2026-09-10 cost rule)
 //   castVote(page, i) -> Zak's castVote function: one vote per browser
 //                        (Firebase anonymous sign-in); returns the totals
-// Results stay hidden until you vote (submit first, then see).
+// Results stay hidden until you vote (submit first, then see), or until you
+// give up your vote to watch ("See results without voting").
 // Add ?sample to the address to see the old sample pages
 // (surge/sample/<handle>.json), where votes stay in this browser.
 
@@ -37,6 +38,10 @@
     facebook: { name: "Facebook", url: u => `https://www.facebook.com/${u}` },
   };
   const ORDER = ["instagram", "tiktok", "youtube", "x", "facebook"];
+  // "See results without voting" needs Zak's castVote to accept a pass
+  // (BACKLOG, Thu 10/29 agenda). Until then a tap says "Coming soon."
+  // Flip to true once it's live. ?sample pages already do the whole thing.
+  const PASS_READY = false;
 
   // ---------- Data ----------
 
@@ -74,11 +79,23 @@
       if (mine !== null && mine >= 0 && mine < counts.length) counts[mine] += 1;
       return { counts, mine };
     },
+
+    canPass: true,
+
+    async pass(page) {
+      // Sample: remember the pass and show the totals without your vote.
+      localStorage.setItem(passKey(page), "1");
+      return { counts: page.live.sampleCounts.slice(), mine: null, closed: false };
+    },
+
+    passed(page) {
+      return localStorage.getItem(passKey(page)) === "1";
+    },
   };
 
-  // Firebase loads only on real pages, and the anonymous sign-in only happens
-  // when someone votes or needs results, so a visitor who just looks costs
-  // one read.
+  // Firebase loads only on real pages. The anonymous sign-in starts when a
+  // zzzap is open to vote on (so the tap only waits for the vote) or when
+  // results are needed; reading the page itself is one read.
   let firebase = null;
   function loadFirebase() {
     if (!firebase) {
@@ -119,6 +136,12 @@
     return prepareToVote().then(castVote => castVote({ pollId, optionIndex })).then(r => r.data);
   }
 
+  // Give up this browser's vote on a zzzap and get the totals. The server
+  // keeps passes apart from votes and refuses a vote after one.
+  function callPass(pollId) {
+    return prepareToVote().then(castVote => castVote({ pollId, pass: true })).then(r => r.data);
+  }
+
   const liveApi = {
     mode: "live",
 
@@ -148,6 +171,10 @@
     },
 
     async resultsFor(page) {
+      if (this.passed(page)) {
+        const result = await callPass(page.live.pollId);
+        return { counts: result.counts, mine: null };
+      }
       // The server only hands out totals in answer to a vote. Re-sending this
       // browser's own vote returns them without counting it twice. -1 is
       // never a valid answer, so for an ended zzzap it can only return the
@@ -159,11 +186,27 @@
         mine: typeof result.mine === "number" ? result.mine : null,
       };
     },
+
+    canPass: PASS_READY,
+
+    async pass(page) {
+      const result = await callPass(page.live.pollId);
+      // Voted from this browser before: the vote stands, show it as yours.
+      const mine = typeof result.mine === "number" ? result.mine : null;
+      if (mine !== null) localStorage.setItem(voteKey(page), String(mine));
+      else localStorage.setItem(passKey(page), "1");
+      return { counts: result.counts, mine, closed: result.closed };
+    },
+
+    passed(page) {
+      return sampleApi.passed(page);
+    },
   };
 
   const api = new URLSearchParams(location.search).has("sample") ? sampleApi : liveApi;
 
   function voteKey(page) { return `zzzap.vote.${page.live.pollId}`; }
+  function passKey(page) { return `zzzap.pass.${page.live.pollId}`; }
 
   // ---------- Small helpers (text only, never HTML from data) ----------
 
@@ -343,7 +386,8 @@
     // Results are hidden until you vote. Say so, so the plain answer list
     // doesn't read as "no votes yet" or a page that hasn't updated.
     const hint = el("p", "hint", "Vote to see how everyone answered.");
-    if (!ended && api.myVote(page) === null) card.append(hint);
+    const watching = api.myVote(page) === null && api.passed(page);
+    if (!ended && api.myVote(page) === null && !watching) card.append(hint);
 
     const options = el("div", "options");
     const buttons = live.options.map((text, i) => {
@@ -366,6 +410,13 @@
     const error = el("p", "error hidden", "");
     card.append(error);
 
+    // Give up your vote to watch the live results (Stacy, 2026-10-24).
+    // One choice per browser, same as voting: vote or watch, not both.
+    const watch = el("div", "watch");
+    const watchLink = el("button", "watch-link", "See results without voting");
+    watchLink.type = "button";
+    watch.append(watchLink);
+
     const get = getZzzap(page, ended);
     get.classList.add("hidden");
     card.append(get);
@@ -373,17 +424,27 @@
 
     function showResults(counts, mine, closedNow) {
       const pcts = percentages(counts.map(c => c || 0));
+      // The app's colors (BACKLOG Design rules, Yellow): the leader is
+      // green, a tie at the top is white with the word "Tied", the rest gray.
+      const top = Math.max(0, ...counts.map(c => c || 0));
+      const leaders = top > 0 ? counts.filter(c => (c || 0) === top).length : 0;
       card.classList.add("results");
       hint.remove();
+      watch.remove();
       buttons.forEach((btn, i) => {
         const pct = pcts[i];
         btn.disabled = true;
         btn.querySelector(".pct").textContent = `${pct}%`;
         requestAnimationFrame(() => { btn.querySelector(".fill").style.width = `${pct}%`; });
+        const leads = top > 0 && (counts[i] || 0) === top;
+        btn.classList.toggle("lead", leads && leaders === 1);
+        btn.classList.toggle("tied", leads && leaders > 1);
         // Yellow means one thing only: your answer.
         btn.classList.toggle("mine", i === mine);
       });
-      you.textContent = mine === null ? "" : "✓ You voted";
+      you.textContent = mine !== null ? "✓ You voted" : (api.passed(page) ? "Watching" : "");
+      // Yellow is for your answer only; watching has none.
+      you.classList.toggle("watching", mine === null);
       // Visitors see percentages, never counts; the creator sees counts in
       // the app (Stacy, 2026-10-18), so a new account never reads as empty.
       if (closedNow && !ended) {
@@ -391,7 +452,8 @@
         pill.lastChild.textContent = "ENDED";
         ends.textContent = "Voting closed";
       }
-      count.textContent = ended || closedNow ? "Final results" : "Live results";
+      const label = ended || closedNow ? "Final results" : "Live results";
+      count.textContent = leaders > 1 ? `Tied · ${label}` : label;
       get.classList.remove("hidden");
       if (!ended && !closedNow) keepResultsLive();
     }
@@ -418,7 +480,7 @@
     }
 
     const already = api.myVote(page);
-    if (ended || already !== null) {
+    if (ended || already !== null || watching) {
       // A missed zzzap is a conversion screen, not an error (2026-09-11).
       buttons.forEach(b => (b.disabled = true));
       count.textContent = "Loading results";
@@ -434,8 +496,50 @@
       // Get signed in as soon as there's something to vote on, so the tap
       // only waits for the vote itself.
       if (api === liveApi) prepareToVote().catch(() => {});
+      card.insertBefore(watch, get);
+      watchLink.addEventListener("click", () => {
+        if (!api.canPass) {
+          if (!watch.querySelector(".watch-note")) watch.append(el("p", "watch-note", "Coming soon."));
+          return;
+        }
+        confirmWatch();
+      });
+
+      function confirmWatch() {
+        watch.replaceChildren();
+        const box = el("div", "watch-confirm");
+        box.append(el("p", null, "You won't be able to vote on this one."));
+        const actions = el("div", "watch-actions");
+        const cancel = el("button", "watch-cancel", "Cancel");
+        cancel.type = "button";
+        const go = el("button", "watch-go", "See Results");
+        go.type = "button";
+        actions.append(cancel, go);
+        box.append(actions);
+        watch.append(box);
+
+        cancel.addEventListener("click", () => watch.replaceChildren(watchLink));
+        go.addEventListener("click", async () => {
+          cancel.disabled = go.disabled = true;
+          buttons.forEach(b => (b.disabled = true));
+          error.classList.add("hidden");
+          count.textContent = "Loading results";
+          try {
+            const r = await api.pass(page);
+            showResults(r.counts, r.mine, r.closed);
+          } catch {
+            count.textContent = "";
+            buttons.forEach(b => (b.disabled = false));
+            watch.replaceChildren(watchLink);
+            error.textContent = "Couldn't load the results. Try again.";
+            error.classList.remove("hidden");
+          }
+        });
+      }
+
       buttons.forEach((btn, i) => btn.addEventListener("click", async () => {
         buttons.forEach(b => (b.disabled = true));
+        watch.classList.add("hidden");
         error.classList.add("hidden");
         // Show the tap landed right away; results replace this when they arrive.
         options.classList.add("sending");
@@ -450,6 +554,7 @@
           options.classList.remove("sending");
           btn.classList.remove("picked");
           btn.querySelector(".pct").textContent = "";
+          watch.classList.remove("hidden");
           buttons.forEach(b => (b.disabled = false));
           error.textContent = err && err.code === "functions/resource-exhausted"
             ? "Slow down a moment, then try again."
@@ -501,7 +606,7 @@
       const card = el("div", "past");
       card.append(el("div", "q", item.question));
       const w = el("div", "winner");
-      w.append(el("span", "wname", item.winner || "No votes"), el("span", "wpct", `${item.winnerPct || 0}%`));
+      w.append(el("span", item.winner ? "wname" : "wname none", item.winner || "No votes"), el("span", "wpct", `${item.winnerPct || 0}%`));
       const bar = el("div", "bar");
       const fill = el("i");
       fill.style.width = `${Math.max(0, Math.min(100, item.winnerPct))}%`;
