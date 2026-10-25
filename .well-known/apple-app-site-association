@@ -1,0 +1,12 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["XK9K77G62A.spahr.zap"],
+        "components": [
+          { "/": "/@*", "comment": "Surge pages: open that Surge account's profile in the app" }
+        ]
+      }
+    ]
+  }
+}

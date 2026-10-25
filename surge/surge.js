@@ -305,7 +305,7 @@
     const rawName = style.name === "serif" ? "elegant" : style.name;
     const nameStyle = ["classic", "bold", "tall", "elegant", "mono", "rounded"].includes(rawName) ? rawName : "classic";
     const nameColor = ["white", "yellow", "orange", "pink", "mint", "lavender"].includes(style.nameColor) ? style.nameColor : "white";
-    root.className = `phone header-${header} name-${nameStyle} color-${nameColor}`;
+    root.className = `phone header-${header} name-${nameStyle} color-${nameColor}${page.live ? " has-live" : ""}`;
 
     // Header photo + identity, like the app's SurgeHeroPhoto.
     const hero = el("div", "hero");
@@ -326,15 +326,62 @@
     identity.append(el("h1", "name", name));
     identity.append(el("div", "handle", `@${page.handle}`));
     identity.append(el("div", "badge", page.category ? `${page.category} · Surge` : "Surge"));
-    if (page.bio) identity.append(el("p", "bio", page.bio));
+    if (isIPhone()) identity.append(openInApp(page));
 
-    root.replaceChildren(hero, identity, links(page));
+    // A live zzzap goes right under the name, ahead of the bio and links,
+    // so it isn't hidden below a tall Poster photo (Stacy, 2026-10-25).
+    const about = el("div", page.live ? "about after-live" : "about");
+    if (page.bio) about.append(el("p", "bio", page.bio));
+    about.append(links(page));
+
+    root.replaceChildren(hero, identity);
     if (api.mode === "sample") {
       root.append(el("p", "sample-note", "Sample page. Votes here stay in this browser."));
     }
     if (page.live) root.append(liveSection(page));
+    root.append(about);
     if (page.past && page.past.length) root.append(pastSection(page));
     root.append(footer());
+  }
+
+  // "Have Zzzap? Open in the app." The page can't tell whether the app is
+  // installed (Apple keeps that private), so this is offered to every iPhone.
+  // It points at zzzap-app.com, not this site: iOS only hands a link to the
+  // app when it goes to a different site than the page you're on. Without
+  // the app, zzzap-app.com shows its "get the app" page.
+  function openInApp(page) {
+    const wrap = el("div", "open-app");
+    wrap.append(document.createTextNode("Have Zzzap? "));
+    const a = el("a", null, "Open in the app");
+    a.href = `https://zzzap-app.com/@${page.handle}`;
+    wrap.append(a);
+    return wrap;
+  }
+
+  // Pinned to the bottom while the live zzzap is off screen, so a visitor
+  // knows there's something to vote on without scrolling. Tapping it
+  // scrolls to the zzzap. Gone once they've voted or watched.
+  function liveBar(page, card) {
+    const bar = el("button", "live-bar hidden");
+    bar.type = "button";
+    const pill = el("span", "live-pill");
+    pill.append(el("span", "dot"), document.createTextNode("LIVE"));
+    bar.append(pill, el("span", "live-bar-q", page.live.question), el("span", "live-bar-go", "Vote"));
+    bar.addEventListener("click", () => card.scrollIntoView({ behavior: "smooth", block: "center" }));
+    if ("IntersectionObserver" in window) {
+      const watcher = new IntersectionObserver(([entry]) => {
+        if (card.classList.contains("results") || card.classList.contains("closed")) {
+          bar.remove();
+          watcher.disconnect();
+          return;
+        }
+        // Only while no part of the card is on screen, so the two never
+        // stack up (Safari draws the page under its own toolbar too).
+        bar.classList.toggle("hidden", entry.isIntersecting);
+      });
+      watcher.observe(card);
+    }
+    return bar;
   }
 
   function links(page) {
@@ -493,6 +540,7 @@
         });
     } else {
       count.textContent = "";
+      section.append(liveBar(page, card));
       // Get signed in as soon as there's something to vote on, so the tap
       // only waits for the vote itself.
       if (api === liveApi) prepareToVote().catch(() => {});
