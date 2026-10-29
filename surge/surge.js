@@ -654,13 +654,22 @@
       const card = el("div", "past");
       card.append(el("div", "q", item.question));
       const w = el("div", "winner");
+      const sub = el("div", "sub");
+      sub.append(el("span", null, "Final results"), el("span", null, `Ended ${formatDate(item.endedAt)}`));
+      if (item.tie) {
+        // The server sends tie: true with no winner when answers share the
+        // top count. White "Tied", the app's rule; no percent or bar, since
+        // there's no single answer to measure.
+        w.append(el("span", "wname tied", "Tied"));
+        card.append(w, sub);
+        list.append(card);
+        continue;
+      }
       w.append(el("span", item.winner ? "wname" : "wname none", item.winner || "No votes"), el("span", "wpct", `${item.winnerPct || 0}%`));
       const bar = el("div", "bar");
       const fill = el("i");
       fill.style.width = `${Math.max(0, Math.min(100, item.winnerPct))}%`;
       bar.append(fill);
-      const sub = el("div", "sub");
-      sub.append(el("span", null, "Final results"), el("span", null, `Ended ${formatDate(item.endedAt)}`));
       card.append(w, bar, sub);
       list.append(card);
     }

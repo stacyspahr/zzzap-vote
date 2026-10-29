@@ -32,6 +32,14 @@
       "endedAt": "2026-10-10"
     },
     {
+      "question": "Pizza or tacos for game night?",
+      "winner": null,
+      "winnerPct": 0,
+      "votes": 64,
+      "tie": true,
+      "endedAt": "2026-10-06"
+    },
+    {
       "question": "Next set to draft at the local shop?",
       "winner": "The newest one",
       "winnerPct": 57,
