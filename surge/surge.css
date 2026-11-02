@@ -237,6 +237,7 @@ h1.name {
 .meta .you.watching { color: var(--dim); }
 /* Before you vote: results are hidden, and the page says so. */
 .hint { color: var(--dim); font-size: 13.5px; margin: -4px 0 14px; }
+.hint.already { margin: 12px 0 0; }
 .error { color: #ff6b6b; font-size: 13px; margin-top: 12px; }
 /* "See results without voting": quiet until tapped, then one confirm step.
    Cancel left, the action right (Design rules). */

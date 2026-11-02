@@ -64,8 +64,10 @@
       const counts = page.live.sampleCounts.slice();
       counts[optionIndex] += 1;
       localStorage.setItem(voteKey(page), String(optionIndex));
-      return { counts, mine: optionIndex };
+      return { counts, mine: optionIndex, already: false };
     },
+
+    async checkVoted() { return null; },
 
     myVote(page) {
       const saved = localStorage.getItem(voteKey(page));
@@ -163,7 +165,23 @@
       // Already voted from this browser: the server keeps the first vote.
       const mine = typeof result.mine === "number" ? result.mine : null;
       if (mine !== null) localStorage.setItem(voteKey(page), String(mine));
-      return { counts: result.counts, mine, closed: result.closed };
+      return { counts: result.counts, mine, closed: result.closed, already: !!result.already };
+    },
+
+    // This browser may have voted without remembering it (saved data
+    // cleared, or the page closed before the vote came back). Ask the
+    // server: -1 is never a valid answer, so it can't cast a vote. Until
+    // castVote checks "already" before the answer, this just fails quietly
+    // and the buttons stay. Returns the results if this browser voted.
+    async checkVoted(page) {
+      try {
+        const result = await callCastVote(page.live.pollId, -1);
+        if (typeof result.mine !== "number") return null;
+        localStorage.setItem(voteKey(page), String(result.mine));
+        return { counts: result.counts, mine: result.mine, closed: result.closed };
+      } catch {
+        return null;
+      }
     },
 
     myVote(page) {
@@ -456,6 +474,9 @@
     card.append(meta);
     const error = el("p", "error hidden", "");
     card.append(error);
+    // Shown when this browser had already voted: the first vote stands.
+    const alreadyNote = el("p", "hint already hidden", "You already voted on this one from this browser, so your first answer counts.");
+    card.append(alreadyNote);
 
     // Give up your vote to watch the live results (Stacy, 2026-10-24).
     // One choice per browser, same as voting: vote or watch, not both.
@@ -544,6 +565,12 @@
       // Get signed in as soon as there's something to vote on, so the tap
       // only waits for the vote itself.
       if (api === liveApi) prepareToVote().catch(() => {});
+      // Voted before but this browser forgot: show the results, not buttons.
+      api.checkVoted(page).then(r => {
+        if (!r || stale() || card.classList.contains("results") || options.classList.contains("sending")) return;
+        showResults(r.counts, r.mine, r.closed);
+        alreadyNote.classList.remove("hidden");
+      });
       card.insertBefore(watch, get);
       watchLink.addEventListener("click", () => {
         if (!api.canPass) {
@@ -598,6 +625,7 @@
           options.classList.remove("sending");
           btn.classList.remove("picked");
           showResults(result.counts, result.mine, result.closed);
+          if (result.already) alreadyNote.classList.remove("hidden");
         } catch (err) {
           options.classList.remove("sending");
           btn.classList.remove("picked");
