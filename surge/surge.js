@@ -510,7 +510,12 @@
         // Yellow means one thing only: your answer.
         btn.classList.toggle("mine", i === mine);
       });
-      you.textContent = mine !== null ? "✓ You voted" : (api.passed(page) ? "Watching" : "");
+      // Name the answer: the yellow outline alone is easy to miss, and
+      // reads like the green leader when they're the same row.
+      const myAnswer = mine !== null ? live.options[mine] : undefined;
+      you.textContent = mine !== null
+        ? (myAnswer ? `✓ You voted ${myAnswer}` : "✓ You voted")
+        : (api.passed(page) ? "Watching" : "");
       // Yellow is for your answer only; watching has none.
       you.classList.toggle("watching", mine === null);
       // Visitors see percentages, never counts; the creator sees counts in
