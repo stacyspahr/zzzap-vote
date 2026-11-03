@@ -686,21 +686,25 @@
     const box = el("div", "get");
     const txt = el("div", "txt");
     const who = firstName(page);
-    if (ended) {
-      txt.append(el("div", "t1", "You missed this one"));
-      txt.append(el("div", "t2", `Get Zzzap and ${who}'s next question lands on your lock screen.`));
-    } else {
-      txt.append(el("div", "t1", "Don't miss the next one"));
-      txt.append(el("div", "t2", `Get Zzzap and ${who}'s next question lands on your lock screen.`));
-    }
+    txt.append(el("div", "t1", ended ? "You missed this one" : "Don't miss the next one"));
     box.append(txt);
     if (isIPhone() || !/Android/.test(navigator.userAgent)) {
+      txt.append(el("div", "t2", "With the free Zzzap app you can:"));
+      // Only what the app really does for someone following a Surge account.
+      // On Surge, comments go to the account owner only (voice.json).
+      const perks = el("ul", "perks");
+      for (const line of [
+        `Get notified the moment ${who} asks something new`,
+        "Vote right from the notification",
+        `Send ${who} a comment with your vote`,
+      ]) perks.append(el("li", null, line));
+      txt.append(perks);
       const btn = el("a", "get-btn", "Get Zzzap");
       btn.href = APP_STORE;
       box.append(btn);
     } else {
       // No Android app yet (deferred until web voting shows the demand).
-      box.querySelector(".t2").textContent = "Zzzap is on iPhone for now.";
+      txt.append(el("div", "t2", "Zzzap is on iPhone for now."));
     }
     return box;
   }
