@@ -122,12 +122,39 @@
           import(`${SDK}/firebase-auth.js`),
           import(`${SDK}/firebase-functions.js`),
         ]);
-        const auth = authMod.getAuth(app);
+        // Keep the sign-in in localStorage, not the default IndexedDB:
+        // Instagram's built-in browser lost the IndexedDB copy seconds after
+        // signing in, which signed the page out and the vote was refused
+        // (11/3). Listing IndexedDB second carries over a browser's existing
+        // sign-in, so people who already voted stay the same voter.
+        let auth;
+        try {
+          auth = authMod.initializeAuth(app, {
+            persistence: [
+              authMod.browserLocalPersistence,
+              authMod.indexedDBLocalPersistence,
+              authMod.inMemoryPersistence,
+            ],
+          });
+        } catch {
+          auth = authMod.getAuth(app); // already set up by an earlier try
+        }
         // The same anonymous account every visit is what makes it one vote
         // per browser.
         await auth.authStateReady();
         if (!auth.currentUser) await authMod.signInAnonymously(auth);
-        return fnMod.httpsCallable(fnMod.getFunctions(app), "castVote");
+        const castVote = fnMod.httpsCallable(fnMod.getFunctions(app), "castVote");
+        // Sign in again if the browser dropped the sign-in since the last call.
+        return async (data) => {
+          if (!auth.currentUser) await authMod.signInAnonymously(auth);
+          try {
+            return await castVote(data);
+          } catch (err) {
+            if (!err || err.code !== "functions/unauthenticated") throw err;
+            await authMod.signInAnonymously(auth);
+            return castVote(data);
+          }
+        };
       });
       signedIn.catch(() => { signedIn = null; });
     }
