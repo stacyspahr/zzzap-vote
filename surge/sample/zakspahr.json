@@ -29,7 +29,20 @@
       "winner": "Codenames",
       "winnerPct": 41,
       "votes": 158,
-      "endedAt": "2026-10-10"
+      "endedAt": "2026-10-10",
+      "options": [
+        "Codenames",
+        "Ticket to Ride",
+        "Wavelength",
+        "Just One"
+      ],
+      "counts": [
+        65,
+        48,
+        30,
+        15
+      ],
+      "creatorComment": "Codenames it is. Thanks for all the picks!"
     },
     {
       "question": "Pizza or tacos for game night?",
@@ -37,14 +50,30 @@
       "winnerPct": 0,
       "votes": 64,
       "tie": true,
-      "endedAt": "2026-10-06"
+      "endedAt": "2026-10-06",
+      "options": [
+        "Pizza",
+        "Tacos"
+      ],
+      "counts": [
+        32,
+        32
+      ]
     },
     {
       "question": "Next set to draft at the local shop?",
       "winner": "The newest one",
       "winnerPct": 57,
       "votes": 121,
-      "endedAt": "2026-10-03"
+      "endedAt": "2026-10-03",
+      "options": [
+        "The newest one",
+        "A classic set"
+      ],
+      "counts": [
+        69,
+        52
+      ]
     }
   ],
   "style": {

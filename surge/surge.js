@@ -714,31 +714,91 @@
     section.append(el("div", "section-head", "Past zzzaps"));
     const list = el("div", "archive");
     // Final totals only. Never who voted (2026-09-10).
-    for (const item of page.past) {
-      const card = el("div", "past");
-      card.append(el("div", "q", item.question));
-      const w = el("div", "winner");
-      const sub = el("div", "sub");
-      sub.append(el("span", null, "Final results"), el("span", null, `Ended ${formatDate(item.endedAt)}`));
-      if (item.tie) {
-        // The server sends tie: true with no winner when answers share the
-        // top count. White "Tied", the app's rule; no percent or bar, since
-        // there's no single answer to measure.
-        w.append(el("span", "wname tied", "Tied"));
-        card.append(w, sub);
-        list.append(card);
-        continue;
-      }
+    for (const item of page.past) list.append(pastCard(page, item));
+    section.append(list);
+    return section;
+  }
+
+  function pastCard(page, item) {
+    const card = el("div", "past");
+    card.append(el("div", "q", item.question));
+    // The winner line (or "Tied"), shown while the card is closed.
+    const summary = el("div", "summary");
+    const w = el("div", "winner");
+    if (item.tie) {
+      // The server sends tie: true with no winner when answers share the
+      // top count. White "Tied", the app's rule; no percent or bar, since
+      // there's no single answer to measure.
+      w.append(el("span", "wname tied", "Tied"));
+      summary.append(w);
+    } else {
       w.append(el("span", item.winner ? "wname" : "wname none", item.winner || "No votes"), el("span", "wpct", `${item.winnerPct || 0}%`));
       const bar = el("div", "bar");
       const fill = el("i");
       fill.style.width = `${Math.max(0, Math.min(100, item.winnerPct))}%`;
       bar.append(fill);
-      card.append(w, bar, sub);
-      list.append(card);
+      summary.append(w, bar);
     }
-    section.append(list);
-    return section;
+    card.append(summary);
+
+    // Every answer, once the server sends them (zzzaps that end after
+    // Zak adds `options` + `counts`; older ones only have the winner).
+    // Tap the card to open it. Percentages only, like the live card.
+    const options = Array.isArray(item.options) ? item.options : null;
+    const counts = Array.isArray(item.counts) ? item.counts.map(c => Number(c) || 0) : null;
+    const canOpen = options && counts && options.length > 1 && options.length === counts.length;
+    let all = null;
+    if (canOpen) {
+      all = el("div", "answers hidden");
+      const pcts = percentages(counts);
+      const top = Math.max(0, ...counts);
+      const leaders = top > 0 ? counts.filter(c => c === top).length : 0;
+      options.forEach((text, i) => {
+        const row = el("div", "answer");
+        if (top > 0 && counts[i] === top) row.classList.add(leaders > 1 ? "tied" : "lead");
+        const line = el("div", "aline");
+        line.append(el("span", "aname", String(text)), el("span", "apct", `${pcts[i]}%`));
+        const bar = el("div", "bar");
+        const fill = el("i");
+        fill.style.width = `${pcts[i]}%`;
+        bar.append(fill);
+        row.append(line, bar);
+        all.append(row);
+      });
+      card.append(all);
+    }
+
+    // The creator's comment after it ended. Public on Surge: the app
+    // says so under the comment box.
+    const comment = typeof item.creatorComment === "string" ? item.creatorComment.trim() : "";
+    if (comment) {
+      const said = el("p", "said");
+      said.append(el("span", "who", firstName(page) || "Creator"), document.createTextNode(` ${comment}`));
+      card.append(said);
+    }
+
+    const sub = el("div", "sub");
+    const left = el("span", null, "Final results");
+    sub.append(left, el("span", null, `Ended ${formatDate(item.endedAt)}`));
+    card.append(sub);
+
+    if (canOpen) {
+      const toggle = el("button", "all-link", "See all answers");
+      toggle.type = "button";
+      toggle.setAttribute("aria-expanded", "false");
+      left.replaceWith(toggle);
+      card.classList.add("opens");
+      // One handler on the card: a tap anywhere opens it, and the
+      // button's own click bubbles here, so it never toggles twice.
+      card.addEventListener("click", () => {
+        const open = all.classList.contains("hidden");
+        all.classList.toggle("hidden", !open);
+        summary.classList.toggle("hidden", open);
+        toggle.textContent = open ? "Hide answers" : "See all answers";
+        toggle.setAttribute("aria-expanded", String(open));
+      });
+    }
+    return card;
   }
 
   function footer() {
@@ -769,7 +829,8 @@
   // re-reading the page every 30 seconds while it's in front. It only
   // redraws when the live zzzap or the past list changed, so a vote in
   // progress is never wiped.
-  const pageKey = page => JSON.stringify([page.live && page.live.pollId, (page.past || []).length]);
+  // A comment added after it ended changes a past entry, not the count.
+  const pageKey = page => JSON.stringify([page.live && page.live.pollId, (page.past || []).map(p => p.creatorComment || "")]);
   api.loadPage(handle)
     .then(page => {
       if (!page) { renderNotFound(); return; }
