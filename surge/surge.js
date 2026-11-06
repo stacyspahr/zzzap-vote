@@ -693,11 +693,17 @@
       // Only what the app really does for someone following a Surge account.
       // On Surge, comments go to the account owner only (voice.json).
       const perks = el("ul", "perks");
-      for (const line of [
-        `Get notified the moment ${who} asks something new`,
-        "Vote right from the notification",
-        `Send ${who} a comment with your vote`,
-      ]) perks.append(el("li", null, line));
+      // A short bold lead and a dim detail, so it scans instead of reading
+      // like a paragraph (Stacy, 11/5).
+      for (const [lead, detail] of [
+        ["Know first", `Get notified the moment ${who} asks something new`],
+        ["Vote in one tap", "Right from the notification"],
+        ["Say more", `Send ${who} a comment with your vote`],
+      ]) {
+        const li = el("li");
+        li.append(el("div", "lead", lead), el("div", "detail", detail));
+        perks.append(li);
+      }
       txt.append(perks);
       const btn = el("a", "get-btn", "Get Zzzap");
       btn.href = APP_STORE;

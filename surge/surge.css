@@ -297,11 +297,15 @@ h1.name {
   padding: 14px 16px;
   display: flex; flex-direction: column; gap: 12px;
 }
-.get .t1 { font-size: 14.5px; font-weight: 700; }
+.get .t1 { font-size: 17px; font-weight: 800; }
 .get .t2 { font-size: 12.5px; color: var(--dim); margin-top: 2px; line-height: 1.35; }
-/* What the app adds, one plain line each. */
-.get .perks { list-style: none; margin: 8px 0 0; padding: 0; }
-.get .perks li { font-size: 13.5px; line-height: 1.35; padding: 3px 0; }
+/* What the app adds: a bold lead over a dim detail, split by hairlines
+   like an iOS list, so it scans at a glance. No icons (design rules). */
+.get .perks { list-style: none; margin: 10px 0 0; padding: 0; }
+.get .perks li { padding: 9px 0; border-top: 1px solid rgba(255,214,10,.14); }
+.get .perks li:last-child { padding-bottom: 0; }
+.get .perks .lead { font-size: 15px; font-weight: 700; line-height: 1.25; }
+.get .perks .detail { font-size: 12.5px; color: var(--dim); line-height: 1.35; margin-top: 2px; }
 .get-btn {
   text-align: center;
   background: var(--yellow); color: #1a1400;
