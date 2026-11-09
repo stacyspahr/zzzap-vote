@@ -20,7 +20,31 @@
   }
   .photo::after {
     content: ""; position: absolute; inset: 0;
-    background: linear-gradient(180deg, rgba(0,0,0,.3) 0%, transparent 16%, transparent 42%, rgba(0,0,0,.45) 60%);
+    background: linear-gradient(180deg, rgba(0,0,0,.22) 0%, transparent 12%, transparent 42%, rgba(0,0,0,.45) 60%);
+  }
+  /* Where Safari can, the dimming is tied straight to the scroll, so it
+     moves with your finger every frame instead of catching up in jumps
+     (Stacy, 11/9: smoother). It eases in and out over the whole rise of
+     the sheet, evenly over the photo. The fade under the clock only comes
+     in as the sheet reaches the top, so there's no dark band before that.
+     Older browsers keep the scroll-script version. */
+  @keyframes dim { from { opacity: 0; } to { opacity: .6; } }
+  @keyframes scrim { from { opacity: 0; } to { opacity: 1; } }
+  .status-scrim {
+    height: calc(env(safe-area-inset-top, 0px) + 90px);
+    background: linear-gradient(180deg, rgba(12,12,16,.94) 0%, rgba(12,12,16,.8) 35%, rgba(12,12,16,.45) 65%, rgba(12,12,16,0) 100%);
+  }
+  @supports (animation-timeline: scroll()) {
+    .photo .shade {
+      animation: dim ease-in-out both;
+      animation-timeline: scroll(root);
+      animation-range: 0 62svh;
+    }
+    .status-scrim {
+      animation: scrim linear both;
+      animation-timeline: scroll(root);
+      animation-range: 44svh 56svh;
+    }
   }
   .clear { height: 52svh; }
   .sheet {
