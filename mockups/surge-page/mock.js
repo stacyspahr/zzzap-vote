@@ -9,15 +9,15 @@ const D = {
   links: ["instagram", "tiktok", "facebook"],
   website: "zzzap-app.com",
   live: {
-    question: "What was the first piece of tech you fell in love with?",
-    options: ["A family computer", "A game console", "A Walkman or iPod", "My first cell phone"],
-    counts: [48, 41, 22, 30],
+    question: "Guess: how many test versions did Zzzap take before it hit the App Store?",
+    options: ["Under 10", "10 to 25", "25 to 50", "More than 50"],
+    counts: [12, 38, 44, 29],
     ends: "Ends in 1d 6h",
   },
   past: [
-    { q: "Would you build a business with your family?", winner: "Yes, with the right ones", pct: 54, votes: 132, ended: "Nov 6" },
-    { q: "When you learn something new, how do you start?", winner: "Jump in and figure it out", pct: 47, votes: 118, ended: "Nov 3" },
-    { q: "Ever wanted to do something but told yourself it was too late?", winner: "Yes, and I'm doing it now", pct: 41, votes: 156, ended: "Oct 31" },
+    { q: "Starting your first app at 59. Brave or crazy?", winner: "Brave", pct: 71, votes: 164, ended: "Nov 6" },
+    { q: "When something you built breaks, what do you do first?", winner: "Fix it, then sleep", pct: 44, votes: 121, ended: "Nov 3" },
+    { q: "What was the first piece of tech you fell in love with?", winner: "A family computer", pct: 38, votes: 147, ended: "Oct 31" },
   ],
 };
 
