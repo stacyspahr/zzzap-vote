@@ -10,10 +10,18 @@
   /* A: Glass Sheet. The photo fills the screen and stays put. A frosted
      sheet starts halfway down and slides up over it like an iPhone sheet;
      the photo softly dims and blurs behind it. */
-  .photo img {
+  /* Smooth on iPhone: nothing is re-blurred while you scroll. A blurred
+     copy of the photo fades in over the sharp one, and a black layer fades
+     in to dim it. Only opacity and a gentle zoom change, which the phone
+     does on its graphics chip. */
+  .photo .layers {
+    position: absolute; inset: 0;
     transform: scale(calc(1.02 + var(--p) * .06));
-    filter: brightness(calc(1 - var(--p) * .4)) blur(calc(var(--p) * 8px));
+    will-change: transform;
   }
+  .photo .layers img { position: absolute; inset: 0; }
+  .photo .soft { opacity: var(--p); will-change: opacity; }
+  .photo .shade { position: absolute; inset: 0; background: #000; opacity: calc(var(--p) * .4); will-change: opacity; }
   .photo::after {
     content: ""; position: absolute; inset: 0;
     background: linear-gradient(180deg, rgba(0,0,0,.3) 0%, transparent 16%, transparent 42%, rgba(0,0,0,.45) 60%);
@@ -53,7 +61,7 @@
 </style>
 </head>
 <body>
-<div class="photo"><img data-photo alt=""></div>
+<div class="photo"><div class="layers"><img data-photo alt=""><img class="soft" src="header-soft.jpg" alt=""><div class="shade"></div></div></div>
 <div class="status-scrim"></div>
 <div class="col content">
   <div class="clear"></div>

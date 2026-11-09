@@ -9,15 +9,15 @@ const D = {
   links: ["instagram", "tiktok", "facebook"],
   website: "zzzap-app.com",
   live: {
-    question: "New phone day is coming. What actually matters most to you?",
-    options: ["Battery life", "Camera", "Price", "The AI features"],
-    counts: [61, 38, 44, 17],
+    question: "What was the first piece of tech you fell in love with?",
+    options: ["A family computer", "A game console", "A Walkman or iPod", "My first cell phone"],
+    counts: [48, 41, 22, 30],
     ends: "Ends in 1d 6h",
   },
   past: [
-    { q: "Smart home: where should a beginner start?", winner: "Smart lights", pct: 46, votes: 212, ended: "Oct 11" },
-    { q: "Which AI assistant do you actually use every day?", winner: "The one built into my phone", pct: 52, votes: 187, ended: "Oct 4" },
-    { q: "Would you buy smart glasses this year?", winner: "Not yet", pct: 63, votes: 240, ended: "Sep 27" },
+    { q: "Would you build a business with your family?", winner: "Yes, with the right ones", pct: 54, votes: 132, ended: "Nov 6" },
+    { q: "When you learn something new, how do you start?", winner: "Jump in and figure it out", pct: 47, votes: 118, ended: "Nov 3" },
+    { q: "Ever wanted to do something but told yourself it was too late?", winner: "Yes, and I'm doing it now", pct: 41, votes: 156, ended: "Oct 31" },
   ],
 };
 
@@ -107,9 +107,17 @@ function renderPast(target, numbered) {
 
 // --p goes 0 → 1 over the first half screen of scrolling. Each page uses it
 // to dim, blur or zoom the photo that stays put behind the information.
+// Updated once per screen refresh, and only on the layers that use it, so
+// the rest of the page never restyles while you scroll.
+let fxQueued = false;
 function scrollFx() {
-  const p = Math.min(window.scrollY / (window.innerHeight * 0.5), 1);
-  document.documentElement.style.setProperty("--p", p.toFixed(3));
+  if (fxQueued) return;
+  fxQueued = true;
+  requestAnimationFrame(() => {
+    fxQueued = false;
+    const p = Math.min(window.scrollY / (window.innerHeight * 0.5), 1).toFixed(3);
+    document.querySelectorAll(".photo, .status-scrim").forEach((n) => n.style.setProperty("--p", p));
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
