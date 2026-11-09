@@ -248,7 +248,18 @@
     },
   };
 
-  const api = new URLSearchParams(location.search).has("sample") ? sampleApi : liveApi;
+  // Demo pages (vote.zzzap-app.com/demofitness and so on) hand their sample
+  // page in as window.SURGE_DEMO, so they look exactly like a real page.
+  if (window.SURGE_DEMO) {
+    sampleApi.loadPage = async () => {
+      const page = JSON.parse(JSON.stringify(window.SURGE_DEMO));
+      if (page.live && /^[+-]\d+h$/.test(page.live.endsAt || "")) {
+        page.live.endsAt = new Date(Date.now() + parseInt(page.live.endsAt, 10) * 3600e3).toISOString();
+      }
+      return page;
+    };
+  }
+  const api = window.SURGE_DEMO || new URLSearchParams(location.search).has("sample") ? sampleApi : liveApi;
 
   function voteKey(page) { return `zzzap.vote.${page.live.pollId}`; }
   function passKey(page) { return `zzzap.pass.${page.live.pollId}`; }
@@ -350,43 +361,75 @@
     const rawName = style.name === "serif" ? "elegant" : style.name;
     const nameStyle = ["classic", "bold", "tall", "elegant", "mono", "rounded"].includes(rawName) ? rawName : "classic";
     const nameColor = ["white", "yellow", "orange", "pink", "mint", "lavender"].includes(style.nameColor) ? style.nameColor : "white";
-    root.className = `phone header-${header} name-${nameStyle} color-${nameColor}${page.live ? " has-live" : ""}`;
+    const headerPhoto = header === "minimal" ? null : (page.headerPhotoURL || page.photoURL);
+    // The top fade under the clock follows the header, and it sits outside #page.
+    document.body.dataset.header = headerPhoto ? header : "minimal";
+    root.className = `phone header-${headerPhoto ? header : "minimal"} name-${nameStyle} color-${nameColor}${page.live ? " has-live" : ""}`;
 
-    // Header photo + identity, like the app's SurgeHeroPhoto.
-    const hero = el("div", "hero");
-    const headerPhoto = page.headerPhotoURL || page.photoURL;
-    if (headerPhoto && header !== "minimal") {
+    // The Glass Sheet (Stacy picked it 2026-11-09, mockup A): the header
+    // photo fills the screen and stays put; everything else is on a tinted
+    // sheet that starts partway down and scrolls up over it while the photo
+    // dims. No blur anywhere: blurring while scrolling was choppy on iPhone.
+    const parts = [];
+    if (headerPhoto) {
+      const photo = el("div", "photo");
       const img = el("img");
       img.src = headerPhoto;
       img.alt = name;
-      hero.append(img);
+      photo.append(img, el("div", "shade"));
+      parts.push(photo, el("div", "clear"));
     }
-    const identity = el("div", "identity");
-    if (header === "minimal" && page.photoURL) {
+
+    const sheet = el("div", "sheet");
+    if (headerPhoto) sheet.append(el("div", "grab"));
+    if (!headerPhoto && page.photoURL) {
       const avatar = el("img", "avatar");
       avatar.src = page.photoURL;
       avatar.alt = name;
-      identity.append(avatar);
+      sheet.append(avatar);
     }
-    identity.append(el("h1", "name", name));
-    identity.append(el("div", "handle", `@${page.handle}`));
-    identity.append(el("div", "badge", page.category ? `${page.category} · Surge` : "Surge"));
-    if (isIPhone()) identity.append(openInApp(page));
-
-    // A live zzzap goes right under the name, ahead of the bio and links,
-    // so it isn't hidden below a tall Poster photo (Stacy, 2026-10-25).
-    const about = el("div", page.live ? "about after-live" : "about");
-    if (page.bio) about.append(el("p", "bio", page.bio));
-    about.append(links(page));
-
-    root.replaceChildren(hero, identity);
-    if (api.mode === "sample") {
-      root.append(el("p", "sample-note", "Sample page. Votes here stay in this browser."));
+    const who = el("div", "who");
+    const names = el("div", "names");
+    names.append(el("h1", "name", name), el("div", "handle", `@${page.handle}`));
+    who.append(names);
+    if (page.category) who.append(el("span", "tag", page.category));
+    sheet.append(who);
+    if (page.bio) sheet.append(el("p", "bio", page.bio));
+    sheet.append(links(page));
+    if (isIPhone() && !window.SURGE_DEMO) sheet.append(openInApp(page));
+    if (api.mode === "sample" && !window.SURGE_DEMO) {
+      sheet.append(el("p", "sample-note", "Sample page. Votes here stay in this browser."));
     }
-    if (page.live) root.append(liveSection(page));
-    root.append(about);
-    if (page.past && page.past.length) root.append(pastSection(page));
-    root.append(footer());
+    if (page.live) sheet.append(liveSection(page));
+    if (page.past && page.past.length) sheet.append(pastSection(page));
+    // Demo pages can add their own sections (the sign at the gym, and so on).
+    const extra = document.getElementById("surge-extra");
+    if (extra) sheet.append(extra.content.cloneNode(true));
+    sheet.append(footer());
+    root.replaceChildren(...parts, sheet);
+    watchScroll();
+  }
+
+  // Safari 26+ ties the dimming straight to the scroll in surge.css. Older
+  // browsers get the same effect from here, once per screen refresh.
+  let scrollWatched = false;
+  function watchScroll() {
+    if (scrollWatched || (window.CSS && CSS.supports("animation-timeline: scroll()"))) return;
+    scrollWatched = true;
+    let queued = false;
+    const update = () => {
+      queued = false;
+      const clear = document.querySelector(".clear");
+      const span = clear ? clear.offsetHeight * 1.2 : 1;
+      const p = Math.min(Math.max(window.scrollY / span, 0), 1).toFixed(3);
+      const top = clear ? Math.min(Math.max((window.scrollY - clear.offsetHeight * .85) / (clear.offsetHeight * .25), 0), 1).toFixed(3) : 1;
+      document.querySelectorAll(".photo").forEach(n => n.style.setProperty("--p", p));
+      document.querySelectorAll(".status-scrim").forEach(n => n.style.setProperty("--top", top));
+    };
+    const queue = () => { if (!queued) { queued = true; requestAnimationFrame(update); } };
+    window.addEventListener("scroll", queue, { passive: true });
+    window.addEventListener("resize", queue);
+    update();
   }
 
   // "Have Zzzap? Open in the app." The page can't tell whether the app is
@@ -430,7 +473,7 @@
   }
 
   function links(page) {
-    const wrap = el("div");
+    const wrap = el("div", "links");
     const socials = el("div", "socials");
     const data = page.links || {};
     for (const key of ORDER) {
@@ -465,8 +508,7 @@
     const ended = !timeLeft(live.endsAt);
     const gen = renderGen;
     const stale = () => gen !== renderGen;
-    const section = el("div", "section");
-    section.append(el("div", "section-head", ended ? "Just ended" : "Live now"));
+    const section = el("div", "section live-section");
 
     const card = el("div", "card live-card" + (ended ? " closed" : ""));
     const row = el("div", "live-row");
@@ -829,7 +871,7 @@
 
   // ---------- Start ----------
 
-  const handle = handleFromAddress();
+  const handle = window.SURGE_DEMO ? window.SURGE_DEMO.handle : handleFromAddress();
   if (!handle) { renderNotFound(); return; }
   // A page left open picks up a new zzzap, or one that just ended, by
   // re-reading the page every 30 seconds while it's in front. It only

@@ -3,207 +3,195 @@ html { touch-action: manipulation; }
 
 /*
   Surge web page: vote.zzzap-app.com/@handle
-  Mirrors the app's Surge profile (SurgeHeroPhoto / SurgeIdentityView):
-  dark only, yellow accent, photo header with the name on its faded edge.
-  Mobile first at 375px; desktop gets a centered phone-width column.
+  The Glass Sheet (Stacy picked it 2026-11-09, mockup A): the header photo
+  fills the screen and stays put; everything else sits on a tinted sheet
+  that starts partway down and scrolls up over it while the photo dims.
+  No blur anywhere (blurring while scrolling was choppy on iPhone).
+  Dark only, yellow for actions and your own answer, green for live and
+  the leader. Mobile first; wider screens get a centered phone column.
 */
 :root {
   --yellow: #FFD60A;
   --green: #30D158;
+  --live: rgb(51,217,115); /* the app's LiveIndicator green */
   --bg: #0a0a0f;
-  --card: #16161d;
-  --card2: #1d1d26;
-  --line: #23232c;
   --text: #f5f5f7;
-  --dim: #9a9aa3;
-  --dimmer: #55555e;
-  --radius: 22px;
+  --dim: rgba(245,245,247,.62);
+  --dimmer: rgba(245,245,247,.38);
+  --hair: rgba(255,255,255,.12);
+  --p: 0;
+  --top: 0;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html { background: var(--bg); }
+html, body { background: #050507; }
 body {
-  background: var(--bg);
   color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-  display: flex;
-  justify-content: center;
+  -webkit-font-smoothing: antialiased;
   min-height: 100vh;
 }
-.phone {
-  width: 100%;
-  min-height: 100vh;
-  background: var(--bg);
-  box-shadow: 0 0 80px rgba(0,0,0,.8);
-}
+.phone { position: relative; width: 100%; min-height: 100vh; margin: 0 auto; }
+@media (min-width: 500px) { .phone { max-width: 430px; } }
 .hidden { display: none !important; }
-/* Phones: the page is the whole screen, so the photo runs edge to edge.
-   Wider screens get a centered phone-width column. */
-@media (min-width: 500px) {
-  .phone { max-width: 430px; }
-}
-/* Keeps scrolled text from running under the clock and battery. */
-.status-scrim {
-  position: fixed; top: 0; left: 0; right: 0;
-  height: env(safe-area-inset-top, 0px);
-  background: rgba(10,10,15,.94);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
-  z-index: 50;
-  pointer-events: none;
-}
 
-/* ---------- Header photo ---------- */
-/* Poster: the whole 2:3 crop the creator made in the app, which is also
-   how the app shows it (68% of an iPhone screen). No height cap, or the
-   top and bottom get trimmed and the page stops matching the crop. */
-.hero {
-  position: relative;
-  aspect-ratio: 2 / 3;
-  width: 100%;
+/* ---------- The photo that stays put ---------- */
+.photo {
+  position: fixed; top: 0; z-index: 0;
+  left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px; height: 100lvh;
   overflow: hidden;
   background: linear-gradient(160deg, #1d1d26 0%, #0a0a0f 100%);
 }
-.hero img {
-  position: absolute; inset: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
+.photo img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 30%; display: block; }
+/* A light shade behind the clock, and one low on the photo so the sheet's
+   edge reads. */
+.photo::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(180deg, rgba(0,0,0,.22) 0%, transparent 12%, transparent 42%, rgba(0,0,0,.45) 60%);
 }
-/* Darken low so the name reads, then melt into the page. */
-.hero::after {
-  content: "";
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg,
-    rgba(10,10,15,0) 35%,
-    rgba(10,10,15,.65) 78%,
-    var(--bg) 100%);
-  pointer-events: none;
+/* Dims evenly as the sheet rises. */
+.photo .shade {
+  position: absolute; inset: 0; z-index: 1; background: #000;
+  opacity: calc(var(--p) * .6);
+  will-change: opacity;
 }
-.identity {
-  position: relative;
-  z-index: 2;
-  margin-top: -108px;
-  padding: 0 22px;
-  text-align: center;
+.clear { height: 52svh; }
+.header-banner .clear { height: 30svh; }
+
+/* Under the clock, only once the sheet reaches the top. */
+.status-scrim {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 50; pointer-events: none;
+  height: calc(env(safe-area-inset-top, 0px) + 90px);
+  background: linear-gradient(180deg, rgba(12,12,16,.94) 0%, rgba(12,12,16,.8) 35%, rgba(12,12,16,.45) 65%, rgba(12,12,16,0) 100%);
+  opacity: var(--top);
 }
+body[data-header="minimal"] .status-scrim { opacity: 1; }
+
+/* Safari 26+: the dimming and the fade are tied straight to the scroll, so
+   they move with your finger every frame. Others use surge.js. */
+@keyframes surge-dim { from { opacity: 0; } to { opacity: .6; } }
+@keyframes surge-top { from { opacity: 0; } to { opacity: 1; } }
+@supports (animation-timeline: scroll()) {
+  .photo .shade { animation: surge-dim ease-in-out both; animation-timeline: scroll(root); animation-range: 0 62svh; }
+  .header-banner .photo .shade { animation-range: 0 36svh; }
+  .status-scrim { animation: surge-top linear both; animation-timeline: scroll(root); animation-range: 44svh 56svh; }
+  body[data-header="banner"] .status-scrim { animation-range: 22svh 32svh; }
+  body[data-header="minimal"] .status-scrim { animation: none; }
+}
+
+/* ---------- The sheet ---------- */
+.sheet {
+  position: relative; z-index: 1;
+  min-height: 100svh;
+  padding: 10px 20px 0;
+  border-radius: 32px 32px 0 0;
+  /* Tinted glass without the blur: the dimmed photo shows a little. */
+  background: linear-gradient(180deg, rgba(22,22,28,.82) 0%, rgba(12,12,16,.9) 420px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.16), 0 -24px 60px rgba(0,0,0,.35);
+}
+.grab { width: 36px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.3); margin: 0 auto 20px; }
+/* Minimal: no big photo, the round photo above the name. */
+.header-minimal .sheet {
+  border-radius: 0; box-shadow: none; background: var(--bg);
+  padding-top: calc(env(safe-area-inset-top, 0px) + 40px);
+}
+.avatar {
+  width: 112px; height: 112px; border-radius: 50%;
+  object-fit: cover; display: block; margin: 0 0 16px;
+  box-shadow: 0 6px 24px rgba(0,0,0,.45);
+}
+
+.who { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.names { min-width: 0; }
 h1.name {
   font-family: -apple-system, "SF Pro Display", sans-serif;
-  font-size: 34px; font-weight: 800; letter-spacing: -0.02em;
-  line-height: 1.05;
-  text-shadow: 0 2px 24px rgba(0,0,0,.5);
+  font-size: 36px; font-weight: 800; letter-spacing: -.025em; line-height: 1.02;
+  overflow-wrap: anywhere;
 }
-.handle { color: rgba(245,245,247,.7); font-size: 15px; margin-top: 6px; }
-.badge {
-  display: inline-block;
-  margin-top: 10px;
-  background: rgba(255,214,10,.18);
-  box-shadow: inset 0 0 0 100px rgba(0,0,0,.45);
-  color: var(--yellow);
-  font-size: 12.5px; font-weight: 600;
-  padding: 5px 12px; border-radius: 100px;
+.handle { color: var(--dim); font-size: 15px; margin-top: 6px; }
+.tag {
+  flex-shrink: 0; font-size: 12.5px; font-weight: 700;
+  padding: 6px 12px; border-radius: 100px;
+  background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.14);
 }
-/* Bio and links sit outside .identity so a live zzzap can go between. */
-.about { padding: 0 22px; text-align: center; }
-.about .socials { padding-left: 0; padding-right: 0; }
-.about.after-live { padding-top: 12px; }
-/* "Have Zzzap? Open in the app": quiet, like "See results without voting". */
-.open-app { color: var(--dim); font-size: 13.5px; margin-top: 12px; }
-.open-app a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
 .bio {
   /* Keep the line breaks the creator typed in the app. */
   white-space: pre-line;
-  color: rgba(245,245,247,.9);
-  font-size: 15px; line-height: 1.4;
-  margin: 14px auto 0;
-  max-width: 34ch;
+  font-size: 15.5px; line-height: 1.45; color: rgba(245,245,247,.86);
+  margin-top: 14px;
 }
 
 /* ---------- Links ---------- */
-.socials {
-  display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
-  padding: 16px 22px 0;
-}
+.links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+.links:empty { display: none; }
+.socials { display: flex; gap: 10px; }
 .socials a {
-  width: 46px; height: 46px; border-radius: 50%;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.12);
-  backdrop-filter: blur(12px);
+  width: 44px; height: 44px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.12);
   transition: transform .15s ease;
 }
 .socials a:active { transform: scale(.92); }
-.socials img { width: 20px; height: 20px; }
+.socials img { width: 19px; height: 19px; }
 .website {
-  display: block;
-  width: max-content; max-width: calc(100% - 44px);
-  margin: 10px auto 0;
-  padding: 9px 16px;
-  border-radius: 100px;
-  background: rgba(255,255,255,.08);
-  border: 1px solid rgba(255,255,255,.12);
-  color: var(--text);
-  font-size: 14.5px;
-  text-decoration: none;
+  display: inline-flex; align-items: center;
+  height: 44px; max-width: 100%; padding: 0 16px; border-radius: 100px;
+  background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.12);
+  color: var(--text); font-size: 14.5px; font-weight: 600; text-decoration: none;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+/* "Have Zzzap? Open in the app": quiet. */
+.open-app { color: var(--dim); font-size: 13.5px; margin-top: 14px; }
+.open-app a { color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+.sample-note { color: var(--dimmer); font-size: 12px; margin-top: 14px; }
 
 /* ---------- Sections ---------- */
-.section { padding: 26px 16px 0; }
+.section { padding-top: 30px; }
+.live-section { padding-top: 24px; }
 .section-head {
-  font-size: 13px; font-weight: 700; letter-spacing: .08em;
-  color: var(--dim); text-transform: uppercase;
-  padding: 0 6px 10px;
-}
-.card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 20px 18px;
+  font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--dimmer); padding-bottom: 4px;
 }
 
 /* ---------- Live zzzap ---------- */
-.live-card { border-color: rgba(255,214,10,.28); box-shadow: 0 0 40px rgba(255,214,10,.05); }
-.live-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.live-pill {
-  display: inline-flex; align-items: center; gap: 7px;
-  color: var(--text); font-size: 12px; font-weight: 800; letter-spacing: .1em;
+.live-card {
+  padding: 18px 16px 16px; border-radius: 24px;
+  background: rgba(255,255,255,.06);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.1);
 }
+.live-row { display: flex; align-items: center; justify-content: space-between; }
+/* LIVE matches the app's LiveIndicator: its green, a glowing dot, and a
+   ring that grows out of the dot and fades, over and over. */
+.live-pill { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 800; letter-spacing: .1em; color: var(--live); }
+.dot { position: relative; width: 8px; height: 8px; border-radius: 50%; background: var(--live); box-shadow: 0 0 6px rgba(51,217,115,.8); }
+.dot::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--live); animation: ripple 1.6s ease-out infinite; }
+@keyframes ripple { from { transform: scale(1); opacity: .55; } to { transform: scale(2.6); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .dot::before { animation: none; opacity: 0; } }
 .closed .live-pill { color: var(--dim); }
-.live-card.closed { border-color: var(--line); box-shadow: none; }
-.dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--text);
-  animation: pulse 1.6s ease-in-out infinite;
-}
-.closed .dot { background: var(--dimmer); animation: none; }
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(245,245,247,.45); }
-  50% { box-shadow: 0 0 0 7px rgba(245,245,247,0); }
-}
+.closed .dot { background: var(--dimmer); box-shadow: none; }
+.closed .dot::before { display: none; }
 .ends { color: var(--dim); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 .question {
   font-family: -apple-system, "SF Pro Display", sans-serif;
-  font-size: 22px; font-weight: 700; letter-spacing: -0.01em;
-  line-height: 1.25; margin-bottom: 16px;
+  font-size: 21px; font-weight: 700; letter-spacing: -.01em; line-height: 1.25;
+  margin: 12px 0 14px;
 }
-.options { touch-action: manipulation; display: flex; flex-direction: column; gap: 10px; }
+/* Before you vote: results are hidden, and the page says so. */
+.hint { color: var(--dim); font-size: 13px; margin: -8px 0 14px; }
+.hint.already { margin: 12px 0 0; }
+.options { touch-action: manipulation; display: flex; flex-direction: column; gap: 9px; }
 .option {
-  position: relative;
-  width: 100%;
-  background: var(--card2);
-  border: 1px solid #2a2a34;
-  border-radius: 14px;
-  padding: 15px 16px;
-  font: inherit; font-size: 15.5px; font-weight: 600;
-  color: var(--text);
-  text-align: left;
-  cursor: pointer;
-  overflow: hidden;
-  transition: border-color .15s ease, transform .1s ease;
+  position: relative; width: 100%; overflow: hidden;
+  font: inherit; font-size: 16px; font-weight: 600; color: var(--text);
+  text-align: left; cursor: pointer;
+  padding: 15px 16px; border-radius: 15px;
+  background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.1);
+  transition: border-color .15s ease, transform .1s ease, opacity .2s ease;
 }
 .option:active { transform: scale(.985); }
+.option:disabled { cursor: default; }
 /* A tapped answer, while the vote is on its way: it glows and says
    "Sending…", and the other answers step back. */
-.option { transition: border-color .15s ease, transform .1s ease, opacity .2s ease; }
 .sending .option:not(.picked) { opacity: .4; }
 .option.picked { border-color: var(--yellow); animation: sending 1.2s ease-in-out infinite; }
 .option.picked .pct { opacity: 1; color: var(--yellow); transition: none; }
@@ -211,34 +199,26 @@ h1.name {
   0%, 100% { box-shadow: 0 0 0 0 rgba(255,214,10,.45); }
   50% { box-shadow: 0 0 0 6px rgba(255,214,10,0); }
 }
-.option:disabled { cursor: default; }
 .option .fill {
-  position: absolute; inset: 0;
-  width: 0%;
-  background: rgba(255,255,255,.08);
-  border-radius: 13px;
-  transition: width .8s cubic-bezier(.25,.9,.3,1);
+  position: absolute; inset: 0; width: 0%;
+  background: rgba(255,255,255,.1);
+  transition: width .9s cubic-bezier(.22,.9,.3,1);
 }
-.option .row { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.option .row { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .option .pct { font-variant-numeric: tabular-nums; color: var(--dim); font-weight: 700; opacity: 0; transition: opacity .4s ease .3s; }
 .results .option .pct { opacity: 1; }
-/* Status is never yellow (Design rules): the leader's bar is green, a tie
-   at the top is white (the meta line says "Tied"), the rest stay gray. */
-.results .option.lead .fill { background: rgba(48,209,88,.32); }
+/* The leader's bar is green, a tie at the top is white (the meta line
+   says "Tied"), the rest stay gray. Yellow is only your answer. */
+.results .option.lead .fill { background: rgba(48,209,88,.3); }
 .results .option.tied .fill { background: rgba(255,255,255,.2); }
-.results .option.mine { border-color: rgba(255,214,10,.55); }
+.results .option.mine { border-color: rgba(255,214,10,.7); }
 .results .option.mine .pct { color: var(--yellow); }
-.meta {
-  display: flex; justify-content: space-between; align-items: center;
-  color: var(--dim); font-size: 12.5px; margin-top: 14px; padding: 0 2px;
-}
+.meta { display: flex; justify-content: space-between; align-items: center; color: var(--dim); font-size: 13px; margin-top: 12px; }
+.meta:has(span:empty + span:empty) { display: none; }
 .meta > span:last-child { flex-shrink: 0; margin-left: 12px; }
 /* "You voted" is a status, so it's green, not yellow. */
 .meta .you { color: var(--green); font-weight: 600; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .meta .you.watching { color: var(--dim); }
-/* Before you vote: results are hidden, and the page says so. */
-.hint { color: var(--dim); font-size: 13.5px; margin: -4px 0 14px; }
-.hint.already { margin: 12px 0 0; }
 .error { color: #ff6b6b; font-size: 13px; margin-top: 12px; }
 /* "See results without voting": quiet until tapped, then one confirm step.
    Cancel left, the action right (Design rules). */
@@ -246,17 +226,13 @@ h1.name {
 .watch-link {
   background: none; border: none; cursor: pointer;
   color: var(--dim); font: inherit; font-size: 13.5px;
-  text-decoration: underline; text-underline-offset: 3px;
-  padding: 6px;
+  text-decoration: underline; text-underline-offset: 3px; padding: 6px;
 }
 .watch-note { color: var(--dim); font-size: 13px; margin: 2px 0 0; }
 .watch-confirm p { font-size: 14px; margin: 0 0 10px; }
 .watch-actions { display: flex; justify-content: center; gap: 10px; }
-.watch-cancel, .watch-go {
-  font: inherit; font-size: 13.5px; font-weight: 700;
-  border-radius: 100px; padding: 9px 18px; cursor: pointer;
-}
-.watch-cancel { background: var(--card2); border: 1px solid #2a2a34; color: var(--text); }
+.watch-cancel, .watch-go { font: inherit; font-size: 13.5px; font-weight: 700; border-radius: 100px; padding: 9px 18px; cursor: pointer; }
+.watch-cancel { background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12); color: var(--text); }
 .watch-go { background: var(--yellow); border: none; color: #1a1400; font-weight: 800; }
 .watch-cancel:disabled, .watch-go:disabled { opacity: .5; cursor: default; }
 
@@ -268,73 +244,51 @@ h1.name {
   width: calc(100% - 24px); max-width: 406px;
   display: flex; align-items: center; gap: 12px;
   padding: 10px 10px 10px 16px;
-  background: rgba(29,29,38,.92);
-  -webkit-backdrop-filter: blur(20px);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,214,10,.28);
+  background: rgba(29,29,38,.94);
+  border: 1px solid rgba(255,255,255,.14);
   border-radius: 100px;
   box-shadow: 0 10px 30px rgba(0,0,0,.5);
-  color: var(--text); font: inherit; text-align: left;
-  cursor: pointer;
+  color: var(--text); font: inherit; text-align: left; cursor: pointer;
 }
-.live-bar-q {
-  flex: 1; min-width: 0;
-  font-size: 14.5px; font-weight: 600;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.live-bar-go {
-  background: var(--yellow); color: #1a1400;
-  font-size: 13.5px; font-weight: 800;
-  border-radius: 100px; padding: 8px 16px;
-}
+.live-bar-q { flex: 1; min-width: 0; font-size: 14.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.live-bar-go { background: var(--yellow); color: #1a1400; font-size: 13.5px; font-weight: 800; border-radius: 100px; padding: 8px 16px; }
 
 /* ---------- Get Zzzap (after a vote, or on a missed zzzap) ---------- */
 .get {
-  margin-top: 14px;
-  background: linear-gradient(135deg, rgba(255,214,10,.12), rgba(255,214,10,.04));
+  margin-top: 14px; padding: 15px 16px; border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255,214,10,.13), rgba(255,214,10,.04));
   border: 1px solid rgba(255,214,10,.25);
-  border-radius: 16px;
-  padding: 14px 16px;
   display: flex; flex-direction: column; gap: 12px;
 }
 .get .t1 { font-size: 17px; font-weight: 800; }
 .get .t2 { font-size: 12.5px; color: var(--dim); margin-top: 2px; line-height: 1.35; }
 /* What the app adds: a bold lead over a dim detail, split by hairlines
-   like an iOS list, so it scans at a glance. No icons (design rules). */
+   like an iOS list. No icons (design rules). */
 .get .perks { list-style: none; margin: 10px 0 0; padding: 0; }
 .get .perks li { padding: 9px 0; border-top: 1px solid rgba(255,214,10,.14); }
 .get .perks li:last-child { padding-bottom: 0; }
 .get .perks .lead { font-size: 15px; font-weight: 700; line-height: 1.25; }
 .get .perks .detail { font-size: 12.5px; color: var(--dim); line-height: 1.35; margin-top: 2px; }
 .get-btn {
-  text-align: center;
-  background: var(--yellow); color: #1a1400;
-  font: inherit; font-size: 13.5px; font-weight: 800;
-  border: none; border-radius: 100px;
-  padding: 10px 16px;
-  text-decoration: none;
-  white-space: nowrap;
+  text-align: center; background: var(--yellow); color: #1a1400;
+  font: inherit; font-size: 14px; font-weight: 800;
+  border: none; border-radius: 100px; padding: 11px 16px;
+  text-decoration: none; white-space: nowrap;
 }
 
-/* ---------- Past zzzaps ---------- */
-.archive { display: flex; flex-direction: column; gap: 10px; }
-.past {
-  background: var(--card);
-  border: 1px solid #1f1f28;
-  border-radius: 18px;
-  padding: 16px 18px;
-}
-.past .q { font-size: 15.5px; font-weight: 650; color: rgba(245,245,247,.92); line-height: 1.3; }
-.past .winner { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 10px; font-size: 14px; }
+/* ---------- Past zzzaps: rows on hairlines ---------- */
+.archive { display: flex; flex-direction: column; margin-top: 8px; }
+.past { padding: 15px 0; border-top: 1px solid var(--hair); }
+.past .q { font-size: 15.5px; font-weight: 650; line-height: 1.3; }
+.past .winner { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-top: 9px; font-size: 14px; }
 .past .wname { color: var(--green); font-weight: 700; }
 .past .wname.none { color: var(--dim); }
 .past .wname.tied { color: #fff; }
 .past .wpct { color: var(--dim); font-weight: 600; font-variant-numeric: tabular-nums; }
-.past .bar { height: 5px; background: var(--line); border-radius: 3px; margin-top: 8px; overflow: hidden; }
-.past .bar i { display: block; height: 100%; background: rgba(48,209,88,.6); border-radius: 3px; }
-.past .sub { display: flex; justify-content: space-between; color: var(--dimmer); font-size: 12px; margin-top: 9px; }
+.past .bar { height: 4px; background: rgba(255,255,255,.1); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.past .bar i { display: block; height: 100%; background: rgba(48,209,88,.65); border-radius: 2px; }
+.past .sub { display: flex; justify-content: space-between; color: var(--dimmer); font-size: 12px; margin-top: 8px; }
 .past.opens { cursor: pointer; }
-.past .hidden { display: none; }
 .past .answers { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
 .past .aline { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; font-size: 14px; }
 .past .aname { color: var(--dim); font-weight: 600; }
@@ -342,25 +296,33 @@ h1.name {
 .past .answer .bar { margin-top: 6px; }
 .past .answer .bar i { background: rgba(255,255,255,.14); }
 .past .answer.lead .aname { color: var(--green); font-weight: 700; }
-.past .answer.lead .bar i { background: rgba(48,209,88,.6); }
+.past .answer.lead .bar i { background: rgba(48,209,88,.65); }
 .past .answer.tied .aname { color: #fff; font-weight: 700; }
 .past .answer.tied .bar i { background: rgba(255,255,255,.35); }
 .past .said { margin: 12px 0 0; font-size: 14px; line-height: 1.4; color: rgba(245,245,247,.85); overflow-wrap: anywhere; }
 .past .said .who { color: #fff; font-weight: 700; }
 .past .all-link { background: none; border: 0; padding: 0; font: inherit; color: var(--dim); cursor: pointer; }
 
-/* ---------- Not found / sample note / footer ---------- */
+/* ---------- Demo page extras (the sign at the gym, and so on) ---------- */
+.extra-img { display: block; width: 100%; border-radius: 20px; margin-top: 12px; }
+.sign {
+  display: flex; gap: 16px; align-items: center;
+  margin-top: 12px; padding: 16px; border-radius: 20px;
+  background: rgba(255,255,255,.06); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1);
+}
+.sign > img { width: 96px; height: 96px; border-radius: 10px; background: #fff; padding: 6px; flex-shrink: 0; }
+.sign .s1 { font-size: 16px; font-weight: 800; }
+.sign .s2 { font-size: 14px; font-weight: 600; margin-top: 3px; }
+.sign .s3 { font-size: 12.5px; color: var(--dim); margin-top: 5px; line-height: 1.35; }
+.sign-note { color: var(--dim); font-size: 13px; line-height: 1.45; margin-top: 10px; }
+.extra-text { color: rgba(245,245,247,.86); font-size: 15px; line-height: 1.45; margin-top: 10px; }
+
+/* ---------- Not found / footer ---------- */
 .notfound { text-align: center; padding: 30vh 28px 0; }
 .notfound h1 { font-size: 24px; font-weight: 800; }
 .notfound p { color: var(--dim); margin-top: 10px; line-height: 1.45; }
 .notfound a { color: var(--yellow); }
-.sample-note {
-  margin: 14px 16px 0;
-  color: var(--dimmer);
-  font-size: 12px;
-  text-align: center;
-}
-footer { text-align: center; padding: 34px 20px 40px; color: var(--dimmer); }
+footer { text-align: center; padding: 40px 20px 40px; color: var(--dimmer); }
 /* Room for the live bar, so it never covers Privacy and Terms. */
 .has-live footer { padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
 .bolts { line-height: 0; margin-bottom: 10px; }
@@ -368,20 +330,7 @@ footer { text-align: center; padding: 34px 20px 40px; color: var(--dimmer); }
 .legal { font-size: 11px; margin-top: 10px; }
 footer a { color: var(--dimmer); }
 
-/* ---------- Page styles (same as the app's Page Style) ---------- */
-/* Banner: a shorter photo strip, name just below it. */
-/* Same shape as the app's Banner (42% of an iPhone screen), centered on
-   the 2:3 crop the way the app centers it. */
-.header-banner .hero { aspect-ratio: 11 / 10; }
-.header-banner .identity { margin-top: -28px; }
-/* Minimal: no big photo, the round photo above the name. */
-.header-minimal .hero { display: none; }
-.header-minimal .identity { margin-top: 0; padding-top: 48px; }
-.avatar {
-  width: 132px; height: 132px; border-radius: 50%;
-  object-fit: cover; display: block; margin: 0 auto 14px;
-  box-shadow: 0 6px 24px rgba(0,0,0,.45);
-}
+/* ---------- Name styles (same as the app's Page Style) ---------- */
 .name-bold h1.name { font-weight: 900; font-stretch: expanded; letter-spacing: 0.02em; }
 .name-tall h1.name { font-family: "SF Pro Display Condensed", "Arial Narrow", Impact, sans-serif; font-weight: 900; font-stretch: condensed; font-size: 40px; letter-spacing: -0.01em; }
 .name-elegant h1.name { font-family: ui-serif, "New York", Georgia, serif; font-weight: 400; font-style: italic; letter-spacing: 0; }
