@@ -354,17 +354,14 @@
     const name = page.displayName || page.handle;
     document.title = `${name} · ${page.category ? page.category + " · " : ""}Zzzap`;
 
-    // Page style, same choices as the app's Page Style screen:
-    // header poster | banner | minimal, name classic | rounded | serif.
-    const style = page.style || {};
-    const header = ["poster", "banner", "minimal"].includes(style.header) ? style.header : "poster";
-    const rawName = style.name === "serif" ? "elegant" : style.name;
-    const nameStyle = ["classic", "bold", "tall", "elegant", "mono", "rounded"].includes(rawName) ? rawName : "classic";
-    const nameColor = ["white", "yellow", "orange", "pink", "mint", "lavender"].includes(style.nameColor) ? style.nameColor : "white";
-    const headerPhoto = header === "minimal" ? null : (page.headerPhotoURL || page.photoURL);
+    // One look for every page (Stacy removed Page Style, 2026-11-09), so a
+    // `style` the server still copies over from older accounts is ignored.
+    // With no photo at all, the page has no photo behind it (Minimal).
+    const headerPhoto = page.headerPhotoURL || page.photoURL;
+    const header = headerPhoto ? "poster" : "minimal";
     // The top fade under the clock follows the header, and it sits outside #page.
-    document.body.dataset.header = headerPhoto ? header : "minimal";
-    root.className = `phone header-${headerPhoto ? header : "minimal"} name-${nameStyle} color-${nameColor}${page.live ? " has-live" : ""}`;
+    document.body.dataset.header = header;
+    root.className = `phone header-${header}${page.live ? " has-live" : ""}`;
 
     // The Glass Sheet (Stacy picked it 2026-11-09, mockup A): the header
     // photo fills the screen and stays put; everything else is on a tinted

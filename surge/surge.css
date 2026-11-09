@@ -56,7 +56,6 @@ body {
   will-change: opacity;
 }
 .clear { height: 52svh; }
-.header-banner .clear { height: 30svh; }
 
 /* Under the clock, only once the sheet reaches the top. */
 .status-scrim {
@@ -73,9 +72,7 @@ body[data-header="minimal"] .status-scrim { opacity: 1; }
 @keyframes surge-top { from { opacity: 0; } to { opacity: 1; } }
 @supports (animation-timeline: scroll()) {
   .photo .shade { animation: surge-dim ease-in-out both; animation-timeline: scroll(root); animation-range: 0 62svh; }
-  .header-banner .photo .shade { animation-range: 0 36svh; }
   .status-scrim { animation: surge-top linear both; animation-timeline: scroll(root); animation-range: 44svh 56svh; }
-  body[data-header="banner"] .status-scrim { animation-range: 22svh 32svh; }
   body[data-header="minimal"] .status-scrim { animation: none; }
 }
 
@@ -336,16 +333,3 @@ footer { text-align: center; padding: 40px 20px 40px; color: var(--dimmer); }
 .tagline { font-size: 13px; font-weight: 600; color: var(--dim); }
 .legal { font-size: 11px; margin-top: 10px; }
 footer a { color: var(--dimmer); }
-
-/* ---------- Name styles (same as the app's Page Style) ---------- */
-.name-bold h1.name { font-weight: 900; font-stretch: expanded; letter-spacing: 0.02em; }
-.name-tall h1.name { font-family: "SF Pro Display Condensed", "Arial Narrow", Impact, sans-serif; font-weight: 900; font-stretch: condensed; font-size: 40px; letter-spacing: -0.01em; }
-.name-elegant h1.name { font-family: ui-serif, "New York", Georgia, serif; font-weight: 400; font-style: italic; letter-spacing: 0; }
-.name-mono h1.name { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-weight: 700; font-size: 30px; letter-spacing: 0; }
-.name-rounded h1.name { font-family: ui-rounded, "SF Pro Rounded", -apple-system, sans-serif; font-weight: 900; }
-/* Name color, same palette as the app (SurgeNameColor) */
-.color-yellow h1.name { color: #FFD60A; }
-.color-orange h1.name { color: #FF9E3D; }
-.color-pink h1.name { color: #FF7AA8; }
-.color-mint h1.name { color: #6BE6B8; }
-.color-lavender h1.name { color: #BDA8FF; }
