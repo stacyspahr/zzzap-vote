@@ -770,8 +770,27 @@
     section.append(el("div", "section-head", "Past zzzaps"));
     const list = el("div", "archive");
     // Final totals only. Never who voted (2026-09-10).
-    for (const item of page.past) list.append(pastCard(page, item));
+    // The 3 newest show; the rest (the server keeps 10) wait behind
+    // "See more", so the page stays short (Stacy, 2026-11-09).
+    const SHOWN = 3;
+    const cards = page.past.map(item => pastCard(page, item));
+    cards.forEach((card, i) => {
+      if (i >= SHOWN) card.classList.add("hidden");
+      list.append(card);
+    });
     section.append(list);
+    if (cards.length > SHOWN) {
+      const more = el("button", "see-more", "See more");
+      more.type = "button";
+      more.setAttribute("aria-expanded", "false");
+      more.addEventListener("click", () => {
+        const open = more.getAttribute("aria-expanded") !== "true";
+        cards.slice(SHOWN).forEach(card => card.classList.toggle("hidden", !open));
+        more.textContent = open ? "Show less" : "See more";
+        more.setAttribute("aria-expanded", String(open));
+      });
+      section.append(more);
+    }
     return section;
   }
 

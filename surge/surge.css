@@ -306,6 +306,13 @@ h1.name {
 .past .said { margin: 12px 0 0; font-size: 14px; line-height: 1.4; color: rgba(245,245,247,.85); overflow-wrap: anywhere; }
 .past .said .who { color: #fff; font-weight: 700; }
 .past .all-link { background: none; border: 0; padding: 0; font: inherit; color: var(--dim); cursor: pointer; }
+/* "See more" under the 3 newest: quiet, like the other text links. */
+.see-more {
+  display: block; width: 100%; margin-top: 4px; padding: 14px 0;
+  background: none; border: 0; border-top: 1px solid var(--hair);
+  font: inherit; font-size: 14.5px; font-weight: 600; color: var(--text);
+  cursor: pointer; text-align: center;
+}
 
 /* ---------- Demo page extras (the sign at the gym, and so on) ---------- */
 .extra-img { display: block; width: 100%; border-radius: 20px; margin-top: 12px; }
