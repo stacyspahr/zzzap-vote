@@ -102,7 +102,14 @@ body[data-header="minimal"] .status-scrim { opacity: 1; }
 }
 
 .who { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
+.who-lead { display: flex; align-items: center; gap: 14px; min-width: 0; }
 .names { min-width: 0; }
+/* The round photo beside the name: a logo or a face. */
+.mini {
+  width: 58px; height: 58px; border-radius: 50%; flex-shrink: 0;
+  object-fit: cover; background: #141418;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.16), 0 6px 18px rgba(0,0,0,.4);
+}
 h1.name {
   font-family: -apple-system, "SF Pro Display", sans-serif;
   font-size: 36px; font-weight: 800; letter-spacing: -.025em; line-height: 1.02;

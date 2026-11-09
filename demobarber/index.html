@@ -9,7 +9,7 @@
 <!-- A demo Surge page: the real page design (surge/surge.js + surge.css)
      filled with sample data, so it always looks like what Surge accounts get.
      Bump ?v= with 404.html whenever surge.js or surge.css changes. -->
-<link rel="stylesheet" href="/surge/surge.css?v=202611091200">
+<link rel="stylesheet" href="/surge/surge.css?v=202611091330">
 </head>
 <body>
 <div class="status-scrim"></div>
@@ -19,7 +19,6 @@
 <template id="surge-extra">
   <div class="section">
     <div class="section-head">The founders</div>
-    <img class="extra-img" src="/demobarber/logo.png" alt="Throne" style="width:140px;border-radius:0">
     <p class="extra-text">Sang Nguyen &amp; Bobby O'Dell</p>
   </div>
   <div class="section">
@@ -48,7 +47,9 @@ window.SURGE_DEMO = {
   displayName: "Throne Barbershop",
   category: "Barbershop",
   bio: "Top-shelf haircuts, straight razor shaves and booze. Three Portland shops since 2014. This seat is yours.",
-  photoURL: "/demobarber/owners.jpg",
+  // A business: the owners behind the page, the logo in the circle.
+  headerPhotoURL: "/demobarber/owners.jpg",
+  photoURL: "/demobarber/logo-round.jpg",
   links: { instagram: "thronepdx", facebook: "thronepdx" },
   live: {
     pollId: "demo-barber-live",
@@ -64,6 +65,6 @@ window.SURGE_DEMO = {
   ]
 };
 </script>
-<script src="/surge/surge.js?v=202611091200"></script>
+<script src="/surge/surge.js?v=202611091330"></script>
 </body>
 </html>

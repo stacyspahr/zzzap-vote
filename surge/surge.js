@@ -389,9 +389,20 @@
       sheet.append(avatar);
     }
     const who = el("div", "who");
+    const lead = el("div", "who-lead");
+    // The round photo beside the name, when the header is a different
+    // photo: a business's logo or a person's face (Stacy, 2026-11-09). Not
+    // when the round photo is standing in for a missing header.
+    if (headerPhoto && page.headerPhotoURL && page.photoURL) {
+      const mini = el("img", "mini");
+      mini.src = page.photoURL;
+      mini.alt = "";
+      lead.append(mini);
+    }
     const names = el("div", "names");
     names.append(el("h1", "name", name), el("div", "handle", `@${page.handle}`));
-    who.append(names);
+    lead.append(names);
+    who.append(lead);
     if (page.category) who.append(el("span", "tag", page.category));
     sheet.append(who);
     if (page.bio) sheet.append(el("p", "bio", page.bio));
