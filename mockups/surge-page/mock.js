@@ -1,11 +1,11 @@
 // Shared sample data and behavior for the Surge page mockups (11/9).
 // Each option page builds the same content its own way.
 const D = {
-  name: "Stacy",
+  name: "Stacy Spahr",
   handle: "stacyfromzzzap",
   category: "Tech",
-  bio: "Building Zzzap with my family.\nTech for real life, not for tech's sake.",
-  photo: "/surge/sample/stacyspahr.jpg",
+  bio: "Co-founder of Zzzap. Not a coder. Fell for tech on an Apple II in 8th grade. This is my first app. Follow along, mistakes and all.",
+  photo: "header.jpg",
   links: ["instagram", "tiktok", "facebook"],
   website: "zzzap-app.com",
   live: {
