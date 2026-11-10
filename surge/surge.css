@@ -240,6 +240,15 @@ h1.name {
 .watch-go { background: var(--yellow); border: none; color: #1a1400; font-weight: 800; }
 .watch-cancel:disabled, .watch-go:disabled { opacity: .5; cursor: default; }
 
+/* Share: anyone can pass the page on. White, not yellow: voting is the action. */
+.share { margin-top: 12px; text-align: center; }
+.share-btn {
+  font: inherit; font-size: 14px; font-weight: 700; cursor: pointer;
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+  color: var(--text); border-radius: 100px; padding: 10px 28px;
+}
+.share-note { color: var(--dim); font-size: 13px; margin: 8px 0 0; word-break: break-all; }
+
 /* ---------- Live bar (pinned while the live zzzap is off screen) ---------- */
 .live-bar {
   position: fixed; z-index: 40;

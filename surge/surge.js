@@ -161,8 +161,11 @@
     return signedIn;
   }
 
-  function callCastVote(pollId, optionIndex) {
-    return prepareToVote().then(castVote => castVote({ pollId, optionIndex })).then(r => r.data);
+  // `from` rides along on a real vote only, so the creator can see which
+  // post brought it (Zak's castVote saves it as voterSources.{uid}).
+  function callCastVote(pollId, optionIndex, from) {
+    const data = from ? { pollId, optionIndex, from } : { pollId, optionIndex };
+    return prepareToVote().then(castVote => castVote(data)).then(r => r.data);
   }
 
   // Give up this browser's vote on a zzzap and get the totals. The server
@@ -188,7 +191,7 @@
     },
 
     async castVote(page, optionIndex) {
-      const result = await callCastVote(page.live.pollId, optionIndex);
+      const result = await callCastVote(page.live.pollId, optionIndex, arrivedFrom);
       // Already voted from this browser: the server keeps the first vote.
       const mine = typeof result.mine === "number" ? result.mine : null;
       if (mine !== null) localStorage.setItem(voteKey(page), String(mine));
@@ -260,6 +263,32 @@
     };
   }
   const api = window.SURGE_DEMO || new URLSearchParams(location.search).has("sample") ? sampleApi : liveApi;
+
+  // ---------- Where the visitor came from ----------
+  // Links from the app carry ?from=ig (the creator's post) or ?from=share-ig
+  // (someone else shared it); the page's own Share button uses ?from=share.
+  // Read it once, then take it off the address, so a visitor who copies the
+  // address passes on a plain link and their friends' votes aren't counted
+  // as the creator's Instagram (Stacy, 2026-11-10). Kept for this tab so a
+  // reload still knows.
+  const FROM_TAG = /^(share-)?(ig|fb|tt|link|more)$|^share$/;
+  const arrivedFrom = (() => {
+    const params = new URLSearchParams(location.search);
+    const tag = params.get("from");
+    let saved = null;
+    try {
+      if (tag !== null) {
+        if (FROM_TAG.test(tag)) sessionStorage.setItem("zzzap.from", tag);
+        params.delete("from");
+        const rest = params.toString();
+        history.replaceState(history.state, "", location.pathname + (rest ? `?${rest}` : "") + location.hash);
+      }
+      saved = sessionStorage.getItem("zzzap.from");
+    } catch {
+      saved = tag;
+    }
+    return saved && FROM_TAG.test(saved) ? saved : null;
+  })();
 
   function voteKey(page) { return `zzzap.vote.${page.live.pollId}`; }
   function passKey(page) { return `zzzap.pass.${page.live.pollId}`; }
@@ -566,6 +595,7 @@
     get.classList.add("hidden");
     card.append(get);
     section.append(card);
+    if (api === liveApi) section.append(shareButton(page));
 
     function showResults(counts, mine, closedNow) {
       const pcts = percentages(counts.map(c => c || 0));
@@ -730,6 +760,37 @@
       }, 30000);
     }
     return section;
+  }
+
+  // Anyone can pass the page on (Stacy, 2026-11-10). Only the public link:
+  // the phone's share menu where there is one, else the link is copied.
+  // Tagged ?from=share so the creator sees "Shared" votes, never who shared.
+  function shareButton(page) {
+    const wrap = el("div", "share");
+    const btn = el("button", "share-btn", "Share");
+    btn.type = "button";
+    const note = el("p", "share-note hidden", "");
+    wrap.append(btn, note);
+    const url = `https://vote.zzzap-app.com/@${page.handle}?from=share`;
+    btn.addEventListener("click", async () => {
+      note.classList.add("hidden");
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: `${page.displayName || page.handle} on Zzzap`, text: page.live.question, url });
+          return;
+        } catch (err) {
+          if (err && err.name === "AbortError") return; // they closed the menu
+        }
+      }
+      try {
+        await navigator.clipboard.writeText(url);
+        note.textContent = "Link copied.";
+      } catch {
+        note.textContent = url;
+      }
+      note.classList.remove("hidden");
+    });
+    return wrap;
   }
 
   function getZzzap(page, ended) {
