@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Zzzap Surge · For Stacy</title>
+<style>
+  :root {
+    --yellow: #FFD60A;
+    --bg: #0a0a0f;
+    --card: #16161d;
+    --card2: #1d1d26;
+    --line: #23232c;
+    --text: #f5f5f7;
+    --dim: #9a9aa3;
+    --dimmer: #55555e;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { scroll-snap-type: y mandatory; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  section {
+    min-height: 100vh;
+    min-height: 100svh;
+    scroll-snap-align: start;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 56px 22px 64px;
+  }
+  .slide { width: 100%; max-width: 430px; }
+  .num {
+    color: var(--dimmer); font-size: 12px; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase;
+  }
+  h1, h2 {
+    font-family: -apple-system, "SF Pro Display", sans-serif;
+    font-weight: 800; letter-spacing: -0.02em; line-height: 1.1;
+  }
+  h1 { font-size: 40px; margin-top: 18px; }
+  h2 { font-size: 30px; margin-top: 10px; }
+  .lead { color: var(--dim); font-size: 17px; line-height: 1.45; margin-top: 14px; }
+  .hl { color: var(--yellow); }
+  ul.points { list-style: none; margin-top: 26px; display: flex; flex-direction: column; gap: 12px; }
+  ul.points li {
+    background: var(--card); border: 1px solid var(--line); border-radius: 18px;
+    padding: 15px 17px; font-size: 16px; line-height: 1.4;
+  }
+  ul.points li b { display: block; font-size: 16px; margin-bottom: 3px; }
+  ul.points li span { color: var(--dim); font-size: 15px; }
+  .bolts { line-height: 0; }
+  .title { text-align: center; }
+  .title .lead { font-size: 19px; }
+  .by { color: var(--dimmer); font-size: 14px; margin-top: 40px; }
+  .hint { color: var(--dimmer); font-size: 13px; margin-top: 60px; }
+
+  /* Instagram poll vs Surge zzzap */
+  .vs { margin-top: 24px; display: flex; flex-direction: column; gap: 10px; }
+  .vs-row { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 14px 16px; }
+  .vs-row .q { font-size: 13px; font-weight: 700; color: var(--dim); letter-spacing: .04em; text-transform: uppercase; }
+  .vs-row .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 8px; }
+  .vs-row .who { font-size: 12px; color: var(--dimmer); margin-bottom: 2px; }
+  .vs-row .ig { color: var(--dim); font-size: 15px; line-height: 1.35; }
+  .vs-row .zz { color: var(--text); font-size: 15px; font-weight: 600; line-height: 1.35; }
+  .quote {
+    margin-top: 22px; font-size: 18px; font-weight: 700; line-height: 1.35;
+    border-left: 3px solid var(--yellow); padding-left: 14px;
+  }
+
+  /* Roadmap */
+  .road { margin-top: 26px; display: flex; flex-direction: column; gap: 0; }
+  .stop { display: grid; grid-template-columns: 72px 1fr; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+  .stop:first-child { border-top: none; }
+  .stop .when { font-weight: 800; font-size: 16px; }
+  .stop.now .when { color: var(--yellow); }
+  .stop .what { color: var(--dim); font-size: 15px; line-height: 1.4; }
+  .fine { color: var(--dimmer); font-size: 13px; margin-top: 18px; line-height: 1.4; }
+
+  /* Risks */
+  .risk { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 15px 17px; }
+  .risk b { font-size: 16px; }
+  .risk .means { color: var(--dim); font-size: 15px; margin-top: 4px; line-height: 1.4; }
+  .risk .fix { font-size: 15px; margin-top: 8px; line-height: 1.4; }
+  .risk .fix::before { content: "What we do: "; color: var(--dimmer); }
+  .risks { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+
+  /* Next step */
+  ol.steps { list-style: none; counter-reset: s; margin-top: 26px; display: flex; flex-direction: column; gap: 12px; }
+  ol.steps li {
+    counter-increment: s; display: flex; gap: 14px; align-items: baseline;
+    font-size: 17px; line-height: 1.4;
+  }
+  ol.steps li::before { content: counter(s); color: var(--dimmer); font-weight: 800; width: 14px; }
+  .btn {
+    display: block; text-align: center; margin-top: 34px;
+    background: var(--yellow); color: #000; text-decoration: none;
+    font-weight: 700; font-size: 17px; padding: 16px; border-radius: 16px;
+  }
+  .btn:active { transform: scale(.98); }
+  .link { display: block; text-align: center; margin-top: 16px; color: var(--dim); font-size: 15px; text-decoration: none; }
+  footer { text-align: center; color: var(--dimmer); font-size: 12px; margin-top: 40px; }
+  .frame {
+    margin-top: 20px; height: 62vh; height: 62svh; border-radius: 26px; overflow: hidden;
+    border: 1px solid var(--line); background: #000;
+  }
+  .frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+  button.link { background: none; border: 0; width: 100%; font: inherit; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<!-- 1. Title -->
+<section>
+  <div class="slide title">
+    <div class="bolts"><img src="/zzzap-bolts.svg" alt="Zzzap" width="64" height="56"></div>
+    <h1>Zzzap Surge</h1>
+    <p class="lead">Ask your people. Hear back fast.</p>
+    <p class="by">Made for Stacy Spahr, @stacyfromzzzap</p>
+    <p class="hint">Scroll to read</p>
+  </div>
+</section>
+
+<!-- 2. The problem -->
+<section>
+  <div class="slide">
+    <p class="num">The problem</p>
+    <h2>Your followers want to weigh in. The apps make it hard.</h2>
+    <ul class="points">
+      <li>A story poll disappears in 24 hours.</li>
+      <li>Instagram, TikTok and Facebook each count their own votes. You never get one answer.</li>
+      <li>The algorithm decides who sees your question, not you.</li>
+      <li>When it's over, the result is gone.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 3. What Surge is -->
+<section>
+  <div class="slide">
+    <p class="num">What Surge is</p>
+    <h2>One link. Every vote. <span class="hl">One answer.</span></h2>
+    <ul class="points">
+      <li><b>Ask a question in Zzzap</b><span>We call it a zzzap.</span></li>
+      <li><b>It lives on your own page</b><span>vote.zzzap-app.com/@yourname</span></li>
+      <li><b>Share it anywhere</b><span>Instagram, Facebook, TikTok, texts, your website.</span></li>
+      <li><b>Every vote lands in one result</b><span>People vote right in the browser. No download needed.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 3b. Their page, live -->
+<section>
+  <div class="slide">
+    <p class="num">Here's yours</p>
+    <h2>Your page, live right now.</h2>
+    <p class="lead">This is the real thing, straight from Zzzap. When a zzzap is live, you can vote right here.</p>
+    <div class="frame"><iframe src="/@stacyfromzzzap" title="Stacy's Surge page" loading="lazy"></iframe></div>
+    <a class="btn" href="/@stacyfromzzzap">Open your page</a>
+    <button class="link share" type="button" data-url="https://vote.zzzap-app.com/@stacyfromzzzap">Text this link</button>
+  </div>
+</section>
+
+<!-- 4. Across social media -->
+<section>
+  <div class="slide">
+    <p class="num">Across social media</p>
+    <h2>Post once. Share everywhere.</h2>
+    <ul class="points">
+      <li><b>Instagram and Facebook</b><span>A ready-made story card with your question and photo. Add the link sticker and you're done.</span></li>
+      <li><b>A Vote button on your profile</b><span>Save it to an Instagram Highlight called "Vote." Your link is always live, so it keeps working.</span></li>
+      <li><b>TikTok</b><span>Your page in your bio, and a card ready to post.</span></li>
+      <li><b>Four moments to post</b><span>Launch, Update, Last Call, Results. The app makes a fresh card for each.</span></li>
+    </ul>
+    <p class="quote">You share new pictures, never new links. Your bio link just keeps working.</p>
+  </div>
+</section>
+
+<!-- 5. vs Instagram poll -->
+<section>
+  <div class="slide">
+    <p class="num">Why not just an Instagram poll?</p>
+    <h2>Same question. Very different reach.</h2>
+    <div class="vs">
+      <div class="vs-row"><p class="q">How long</p><div class="cols">
+        <div><p class="who">Instagram poll</p><p class="ig">24 hours</p></div>
+        <div><p class="who">Surge zzzap</p><p class="zz">As long as you choose</p></div></div></div>
+      <div class="vs-row"><p class="q">Where votes come from</p><div class="cols">
+        <div><p class="who">Instagram poll</p><p class="ig">Instagram only</p></div>
+        <div><p class="who">Surge zzzap</p><p class="zz">Every app, one result</p></div></div></div>
+      <div class="vs-row"><p class="q">Who sees it</p><div class="cols">
+        <div><p class="who">Instagram poll</p><p class="ig">The algorithm decides</p></div>
+        <div><p class="who">Surge zzzap</p><p class="zz">Everyone who follows you on Zzzap</p></div></div></div>
+      <div class="vs-row"><p class="q">After it ends</p><div class="cols">
+        <div><p class="who">Instagram poll</p><p class="ig">Gone with the story</p></div>
+        <div><p class="who">Surge zzzap</p><p class="zz">Stays on your page</p></div></div></div>
+      <div class="vs-row"><p class="q">Where your votes came from</p><div class="cols">
+        <div><p class="who">Instagram poll</p><p class="ig">Not shown</p></div>
+        <div><p class="who">Surge zzzap</p><p class="zz">"Instagram 61%, TikTok 30%"</p></div></div></div>
+      <div class="vs-row"><p class="q">Hearing why</p><div class="cols">
+        <div><p class="who">Instagram poll</p><p class="ig">No</p></div>
+        <div><p class="who">Surge zzzap</p><p class="zz">Voters can add a thought, only you see it</p></div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Your brand -->
+<section>
+  <div class="slide">
+    <p class="num">What it does for you</p>
+    <h2>Every vote works for your brand.</h2>
+    <ul class="points">
+      <li><b>Every vote is an impression</b><span>After voting, people see your links to Instagram, TikTok, YouTube and your website.</span></li>
+      <li><b>Your people come back</b><span>Anyone who follows you on Zzzap hears about your next zzzap directly. No algorithm in the way.</span></li>
+      <li><b>Know where your audience is</b><span>See which app brings your votes.</span></li>
+      <li><b>Real input, not just likes</b><span>Thoughts from voters come only to you. Feature the best ones after, with no names.</span></li>
+    </ul>
+    <p class="quote">You ask "Starting your first app at 59. Brave or crazy?" Then your next video shows what people said.</p>
+  </div>
+</section>
+
+<!-- 7. Safe -->
+<section>
+  <div class="slide">
+    <p class="num">Safe for you and your followers</p>
+    <h2>Your brand, treated that way.</h2>
+    <ul class="points">
+      <li><b>No ads. Ever.</b><span>Not in zzzaps, not in notifications.</span></li>
+      <li><b>No tracking</b><span>We never sell anyone's data or share their email or phone.</span></li>
+      <li><b>Invite only</b><span>Every Surge account is picked by hand.</span></li>
+      <li><b>No public comment section</b><span>Nobody fights in front of your audience.</span></li>
+      <li><b>Photos are checked</b><span>Before they show up.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 8. Why early -->
+<section>
+  <div class="slide">
+    <p class="num">Why join early</p>
+    <h2>Founding accounts get the <span class="hl">best seat.</span></h2>
+    <ul class="points">
+      <li><b>Free while we're founding</b><span>And when Surge has a price, founding accounts get a thank-you: a locked price or a free year.</span></li>
+      <li><b>Your @name first</b><span>Before anyone else can take it.</span></li>
+      <li><b>You work with me directly</b><span>I set you up myself, and what you tell me shapes what we build.</span></li>
+      <li><b>Your Surge badge</b><span>"Tech · Surge" on your page.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 9. Grid -->
+<section>
+  <div class="slide">
+    <p class="num">Where it's headed</p>
+    <h2>From popular to <span class="hl">trusted.</span></h2>
+    <p class="lead">Grid is Zzzap's next big step. Zzzap will learn what each question is about and who answers it well.</p>
+    <ul class="points">
+      <li><b>Expert Asks</b><span>People on Zzzap can ask a vetted expert in a topic, like golf or fitness. That expert is you.</span></li>
+      <li><b>Known for good advice</b><span>Not follower count. Grid notices when your advice actually helps, and you earn topic badges you can share.</span></li>
+      <li><b>Never a leaderboard</b><span>No ranking against anyone.</span></li>
+      <li><b>You stay in charge</b><span>Pick your topic and how many asks you take a day.</span></li>
+    </ul>
+    <p class="quote">Surge gets you heard. Grid gets you known as the person to ask.</p>
+  </div>
+</section>
+
+<!-- 10. Roadmap -->
+<section>
+  <div class="slide">
+    <p class="num">Tentative roadmap</p>
+    <h2>Where we're going.</h2>
+    <div class="road">
+      <div class="stop now"><p class="when">Now</p><p class="what">Founding accounts, set up by hand. Web voting is live.</p></div>
+      <div class="stop"><p class="when">Next</p><p class="what">Surge opens to more accounts. Story cards for every moment.</p></div>
+      <div class="stop"><p class="when">Then</p><p class="what">Sign in on the web, so web voters count once and can be known by name.</p></div>
+      <div class="stop"><p class="when">Later</p><p class="what">Grid: Expert Asks and topic badges. Android.</p></div>
+    </div>
+    <p class="fine">Plans can change. No dates on purpose: we ship when it's right.</p>
+  </div>
+</section>
+
+<!-- 11. Risks -->
+<section>
+  <div class="slide">
+    <p class="num">The honest part</p>
+    <h2>What could go wrong.</h2>
+    <p class="lead">I'd rather tell you now than surprise you later.</p>
+    <div class="risks">
+      <div class="risk"><b>Zzzap is new</b><p class="means">Small audience at first. Most votes will come from your own posts.</p><p class="fix">Web voting works for anyone, no app needed.</p></div>
+      <div class="risk"><b>iPhone only for now</b><p class="means">Android followers vote on the web but can't get the app yet.</p><p class="fix">The web page works on every phone. Android comes later.</p></div>
+      <div class="risk"><b>Things will change</b><p class="means">Some features are still being built and may look different.</p><p class="fix">You hear from me first, and you help decide.</p></div>
+      <div class="risk"><b>Small numbers at the start</b><p class="means">Early zzzaps may get fewer votes than an Instagram poll.</p><p class="fix">Story cards only show vote counts once there are 50 or more.</p></div>
+      <div class="risk"><b>It won't always be free</b><p class="means">Surge will have a price someday.</p><p class="fix">Founding accounts hear first and get a locked price or a free year.</p></div>
+      <div class="risk"><b>Your name is on it</b><p class="means">If something goes wrong, it's your brand.</p><p class="fix">Invite only, no ads, no tracking, checked photos, private comments.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 12. Next step -->
+<section>
+  <div class="slide">
+    <p class="num">Next step</p>
+    <h2>Want to be a founding Surge account?</h2>
+    <ol class="steps">
+      <li>Pick your @name.</li>
+      <li>We set up your page together. About 20 minutes.</li>
+      <li>Post your first zzzap together.</li>
+    </ol>
+    <a class="btn" href="https://apps.apple.com/app/id6761918562">Get Zzzap</a>
+    <a class="link" href="/@stacyfromzzzap">See your page</a>
+    <footer>Stacy Spahr · @stacyfromzzzap<br>Text me back and we'll set it up.</footer>
+  </div>
+</section>
+
+<script>
+  // "Text this link": the phone's share sheet (Messages, etc.), or copy where there isn't one.
+  document.querySelectorAll("button.share").forEach(b => b.addEventListener("click", async () => {
+    const url = b.dataset.url;
+    if (navigator.share) { try { await navigator.share({ url }); } catch (e) {} return; }
+    try { await navigator.clipboard.writeText(url); b.textContent = "Link copied"; } catch (e) { prompt("Copy this link", url); }
+  }));
+</script>
+</body>
+</html>
