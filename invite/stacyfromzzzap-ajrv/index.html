@@ -110,6 +110,12 @@
   }
   .frame iframe { width: 100%; height: 100%; border: 0; display: block; }
   button.link { background: none; border: 0; width: 100%; font: inherit; cursor: pointer; }
+  /* Presenter notes: only with #notes-<key> on the link (Stacy's copy). */
+  .say {
+    background: #1d1d26; border: 1px dashed #55555e; border-radius: 16px;
+    padding: 12px 14px; margin-bottom: 18px; font-size: 15px; line-height: 1.45; color: var(--text);
+  }
+  .say-label { display: block; color: var(--dim); font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -323,6 +329,30 @@
     if (navigator.share) { try { await navigator.share({ url }); } catch (e) {} return; }
     try { await navigator.clipboard.writeText(url); b.textContent = "Link copied"; } catch (e) { prompt("Copy this link", url); }
   }));
+</script>
+<script>
+  // Stacy's notes: the link ends in #notes-<key>, which loads notes-<key>.json
+  // from this folder. The prospect's link has no key, so nothing loads and the
+  // notes are nowhere in this page.
+  (async () => {
+    const m = location.hash.match(/^#notes-([a-z0-9]+)$/);
+    if (!m) return;
+    try {
+      const res = await fetch(`notes-${m[1]}.json`, { cache: "no-store" });
+      if (!res.ok) return;
+      const notes = await res.json();
+      document.querySelectorAll("section > .slide").forEach((slide, i) => {
+        if (!notes[i]) return;
+        const box = document.createElement("div");
+        box.className = "say";
+        const label = document.createElement("span");
+        label.className = "say-label";
+        label.textContent = "You say · only you see this";
+        box.append(label, document.createTextNode(notes[i]));
+        slide.prepend(box);
+      });
+    } catch (e) {}
+  })();
 </script>
 </body>
 </html>
