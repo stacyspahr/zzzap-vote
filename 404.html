@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#0a0a0f">
-<!-- Surge pages stay out of search until launch. -->
+<!-- Surge pages stay out of search until launch. Texted zzzaps (/z/) never go in. -->
 <meta name="robots" content="noindex">
 <title>Zzzap</title>
 <!-- GitHub Pages can't make a preview per page, so links share this one. -->
@@ -22,12 +22,30 @@
     "app-id=6761918562, app-argument=" + location.origin + location.pathname;
 </script>
 <link rel="stylesheet" href="/surge/surge.css?v=202611101200">
+<!-- /z/<token> is a texted zzzap: same look, plus its own few styles. Bump
+     ?v= here and below whenever z/text.css or z/text.js changes. -->
+<script>
+  window.ZZZAP_TEXT_PAGE = /^\/z\//.test(location.pathname);
+  if (window.ZZZAP_TEXT_PAGE) {
+    var zcss = document.createElement("link");
+    zcss.rel = "stylesheet";
+    zcss.href = "/z/text.css?v=202611191200";
+    document.head.appendChild(zcss);
+  }
+</script>
 </head>
 <body>
 <!-- Every vote.zzzap-app.com/@handle address lands here (no server), and
-     surge.js fills in that Surge account's page. -->
+     surge.js fills in that Surge account's page. /z/<token> addresses load
+     z/text.js instead. -->
 <div class="status-scrim"></div>
 <div class="phone" id="page"></div>
-<script src="/surge/surge.js?v=202611101200"></script>
+<script>
+  (function () {
+    var s = document.createElement("script");
+    s.src = window.ZZZAP_TEXT_PAGE ? "/z/text.js?v=202611191200" : "/surge/surge.js?v=202611101200";
+    document.body.appendChild(s);
+  })();
+</script>
 </body>
 </html>

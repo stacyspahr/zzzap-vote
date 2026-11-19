@@ -1,0 +1,57 @@
+/*
+  Text a zzzap page: vote.zzzap-app.com/z/<token>
+  Loaded after surge.css, which sets the look (dark only, yellow for actions
+  and your own answer, green for live and the leader). Only what this page
+  adds is here.
+*/
+.z-page .sheet { padding-top: calc(env(safe-area-inset-top, 0px) + 36px); }
+
+/* Who sent it: photo and first name. */
+.z-sender { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.z-avatar {
+  width: 56px; height: 56px; border-radius: 50%; flex-shrink: 0;
+  object-fit: cover; background: #1d1d26;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.16), 0 6px 18px rgba(0,0,0,.4);
+}
+.z-initial { display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: var(--text); }
+.z-from {
+  font-family: -apple-system, "SF Pro Display", sans-serif;
+  font-size: 28px; font-weight: 800; letter-spacing: -.02em; line-height: 1.05;
+  overflow-wrap: anywhere;
+}
+
+/* Answers with a photo: the photo leads the row. */
+.z-label { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.z-thumb { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: #1d1d26; }
+.option .label { overflow-wrap: anywhere; }
+
+/* Open Ballot line above the answers. */
+.hint.z-open { margin: -4px 0 12px; color: var(--text); font-weight: 600; }
+
+/* Group link: "Which one are you?" */
+.z-which-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
+.z-which .error { margin: 0 0 10px; }
+.z-notlisted { margin-top: 12px; }
+.z-as { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: -4px 0 12px; font-size: 14px; font-weight: 600; color: var(--dim); }
+.z-change {
+  background: none; border: none; cursor: pointer; padding: 4px 0;
+  color: var(--text); font: inherit; font-size: 13.5px; font-weight: 600;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+
+/* Get Zzzap: one yellow button, a small line under it. */
+.z-get { margin-top: 16px; display: flex; flex-direction: column; align-items: stretch; text-align: center; }
+.z-get .get-btn { display: block; font-size: 16px; padding: 14px 16px; }
+.z-get .open-app { margin-top: 14px; }
+.z-caption { color: var(--dim); font-size: 13px; margin-top: 8px; }
+.z-which .z-caption { text-align: center; }
+
+/* Pulled, gone, or couldn't load. */
+.z-message { padding-top: 22vh; }
+.z-message .z-get { margin-top: 22px; }
+.z-retry { margin-top: 22px; }
+.z-loading { color: var(--dim); text-align: center; padding-top: 30vh; font-size: 14px; }
+/* surge.css colors links yellow on .notfound; the button keeps its dark text. */
+.z-message .get-btn { color: #1a1400; }
+/* A short page: no fade under the clock covering the sender's name. */
+body[data-header="text"] .status-scrim { display: none; }
