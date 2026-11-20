@@ -251,6 +251,24 @@
     return wrap;
   }
 
+  // After voting (or once it ended): why get the app, then Get Zzzap
+  // (Stacy, 11/20). Short lines, no icons; every line is live in the app.
+  function pitch(token, first, closed) {
+    if (!isIPhone() && /Android/.test(navigator.userAgent)) return getZzzap(token, { copy: true });
+    const box = el("div", "z-pitch");
+    box.append(el("h2", "z-pitch-title", closed ? `${first} is on Zzzap` : "See how it ends"));
+    const list = el("ul", "z-pitch-list");
+    // Ended: they may not have voted, so no "your vote" line.
+    [
+      ...(closed ? [] : ["Your vote comes with you"]),
+      "Vote right from your Lock Screen",
+      "Watch the votes fill in live",
+      "Ask your own people anything",
+    ].forEach(line => list.append(el("li", null, line)));
+    box.append(list, getZzzap(token, { copy: true, caption: "Free on iPhone" }));
+    return box;
+  }
+
   function sender(poll) {
     const box = el("div", "z-sender");
     const photo = cleanPhoto(poll.senderPhotoURL);
@@ -376,12 +394,12 @@
     shownKey = key;
     updateCounts = null;
 
-    document.title = `${first} wants your vote · Zzzap`;
+    document.title = `${first} wants your help choosing · Zzzap`;
     const card = el("div", "card live-card z-card" + (closed ? " closed" : ""));
     const row = el("div", "live-row");
     const pill = el("span", "live-pill");
     pill.append(el("span", "dot"), document.createTextNode(closed ? "ENDED" : "LIVE"));
-    const ends = el("span", "ends", closed ? "Voting closed" : (timeLeft(endsAt) || ""));
+    const ends = el("span", "ends", closed ? "" : (timeLeft(endsAt) || ""));
     row.append(pill, ends);
     card.append(row, el("div", "question", poll.question || ""));
 
@@ -390,7 +408,7 @@
 
     if (voted || closed) {
       card.append(results(options, counts, mine, closed));
-      parts.push(getZzzap(token, { copy: true, caption: closed ? null : "See how it ends" }));
+      parts.push(pitch(token, first, closed));
       show(...parts);
       if (!closed) keepLive(token);
       return;
