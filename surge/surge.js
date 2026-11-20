@@ -794,35 +794,34 @@
   }
 
   function getZzzap(page, ended) {
+    // No Android app yet (deferred until web voting shows the demand), so
+    // no download parts at all, like the texted page (Stacy, 11/20). An
+    // empty box, so the code that shows it after a vote still works.
+    if (!isIPhone() && /Android/.test(navigator.userAgent)) return el("div");
     const box = el("div", "get");
     const txt = el("div", "txt");
     const who = firstName(page);
     txt.append(el("div", "t1", ended ? "You missed this one" : "Don't miss the next one"));
     box.append(txt);
-    if (isIPhone() || !/Android/.test(navigator.userAgent)) {
-      txt.append(el("div", "t2", "With the free Zzzap app you can:"));
-      // Only what the app really does for someone following a Surge account.
-      // On Surge, comments go to the account owner only (voice.json).
-      const perks = el("ul", "perks");
-      // A short bold lead and a dim detail, so it scans instead of reading
-      // like a paragraph (Stacy, 11/5).
-      for (const [lead, detail] of [
-        ["Know first", `Get notified the moment ${who} asks something new`],
-        ["Vote in one tap", "Right from the notification"],
-        ["Say more", `Send ${who} a comment with your vote`],
-      ]) {
-        const li = el("li");
-        li.append(el("div", "lead", lead), el("div", "detail", detail));
-        perks.append(li);
-      }
-      txt.append(perks);
-      const btn = el("a", "get-btn", "Get Zzzap");
-      btn.href = APP_STORE;
-      box.append(btn);
-    } else {
-      // No Android app yet (deferred until web voting shows the demand).
-      txt.append(el("div", "t2", "Zzzap is on iPhone for now."));
+    txt.append(el("div", "t2", "With the free Zzzap app you can:"));
+    // Only what the app really does for someone following a Surge account.
+    // On Surge, comments go to the account owner only (voice.json).
+    const perks = el("ul", "perks");
+    // A short bold lead and a dim detail, so it scans instead of reading
+    // like a paragraph (Stacy, 11/5).
+    for (const [lead, detail] of [
+      ["Know first", `Get notified the moment ${who} asks something new`],
+      ["Vote in one tap", "Right from the notification"],
+      ["Say more", `Send ${who} a comment with your vote`],
+    ]) {
+      const li = el("li");
+      li.append(el("div", "lead", lead), el("div", "detail", detail));
+      perks.append(li);
     }
+    txt.append(perks);
+    const btn = el("a", "get-btn", "Get Zzzap");
+    btn.href = APP_STORE;
+    box.append(btn);
     return box;
   }
 

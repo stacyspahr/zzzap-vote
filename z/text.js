@@ -242,8 +242,9 @@
     // app when it goes to a different site than the page you're on.
     if (copy && isIPhone()) {
       const open = el("div", "open-app");
-      open.append(document.createTextNode("On Zzzap? "));
-      const a = el("a", null, "Open it in the app");
+      // Same words as the Surge page.
+      open.append(document.createTextNode("Have Zzzap? "));
+      const a = el("a", null, "Open in the app");
       a.href = `https://zzzap-app.com/z/${token}`;
       open.append(a);
       wrap.append(open);
@@ -252,20 +253,32 @@
   }
 
   // After voting (or once it ended): why get the app, then Get Zzzap
-  // (Stacy, 11/20). Short lines, no icons; every line is live in the app.
+  // (Stacy, 11/20). The Surge page's card (surge.css .get): a bold lead
+  // over a dim detail, no icons; every line is live in the app.
   function pitch(token, first, closed) {
     if (isAndroid()) return null;
-    const box = el("div", "z-pitch");
-    box.append(el("h2", "z-pitch-title", closed ? `${first} is on Zzzap` : "See how it ends"));
-    const list = el("ul", "z-pitch-list");
+    const box = el("div", "get z-pitch");
+    const txt = el("div", "txt");
+    // render() falls back to "They" when the server sends no first name.
+    const named = first && first !== "They";
+    txt.append(
+      el("div", "t1", closed ? (named ? `${first} is on Zzzap` : "Get Zzzap") : "See how it ends"),
+      el("div", "t2", "With the free Zzzap app you can:"),
+    );
+    const perks = el("ul", "perks");
     // Ended: they may not have voted, so no "your vote" line.
-    [
-      ...(closed ? [] : ["Your vote comes with you"]),
-      "Vote right from your Lock Screen",
-      "Watch the votes fill in live",
-      "Ask your own people anything",
-    ].forEach(line => list.append(el("li", null, line)));
-    box.append(list, getZzzap(token, { copy: true, caption: "Free on iPhone" }));
+    for (const [lead, detail] of [
+      ...(closed ? [] : [["Keep your vote", named ? `It comes with you, and you're connected to ${first}` : "It comes with you"]]),
+      ["Vote in one tap", "Right from your Lock Screen"],
+      ["Watch it live", "The votes fill in on your Lock Screen"],
+      ["Ask your own", "Quick answers from your people"],
+    ]) {
+      const li = el("li");
+      li.append(el("div", "lead", lead), el("div", "detail", detail));
+      perks.append(li);
+    }
+    txt.append(perks);
+    box.append(txt, getZzzap(token, { copy: true }));
     return box;
   }
 
