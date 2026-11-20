@@ -282,7 +282,12 @@
     privacy.href = "https://www.zzzap-app.com/privacy.html";
     const terms = el("a", null, "Terms");
     terms.href = "https://www.zzzap-app.com/terms.html";
-    legal.append(privacy, document.createTextNode(" · "), terms);
+    // Someone texted a zzzap has no app to report it from (Stacy, 11/19).
+    // Emails support with the link, so we can find the zzzap behind it.
+    const report = el("a", null, "Report");
+    report.href = "mailto:support@zzzap-app.com?subject=" + encodeURIComponent("Report a texted zzzap")
+      + "&body=" + encodeURIComponent("What's wrong with it?\n\n\nLink: " + location.href);
+    legal.append(privacy, document.createTextNode(" · "), terms, document.createTextNode(" · "), report);
     f.append(legal);
     return f;
   }
