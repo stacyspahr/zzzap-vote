@@ -220,12 +220,12 @@
   // Get Zzzap: copies this link first, so after installing, the app's
   // "Were you invited?" paste sheet picks the zzzap back up (copying only
   // works on a tap). Without the copy, it still goes.
+  // Android: no app to offer, so no download parts at all (Stacy, 11/20).
+  function isAndroid() { return !isIPhone() && /Android/.test(navigator.userAgent); }
+
   function getZzzap(token, { copy, caption }) {
+    if (isAndroid()) return null;
     const wrap = el("div", "z-get");
-    if (!isIPhone() && /Android/.test(navigator.userAgent)) {
-      wrap.append(el("p", "z-caption", "Zzzap is on iPhone for now."));
-      return wrap;
-    }
     const btn = el("a", "get-btn", "Get Zzzap");
     btn.href = APP_STORE;
     if (copy) {
@@ -254,7 +254,7 @@
   // After voting (or once it ended): why get the app, then Get Zzzap
   // (Stacy, 11/20). Short lines, no icons; every line is live in the app.
   function pitch(token, first, closed) {
-    if (!isIPhone() && /Android/.test(navigator.userAgent)) return getZzzap(token, { copy: true });
+    if (isAndroid()) return null;
     const box = el("div", "z-pitch");
     box.append(el("h2", "z-pitch-title", closed ? `${first} is on Zzzap` : "See how it ends"));
     const list = el("ul", "z-pitch-list");
@@ -325,7 +325,7 @@
   function show(...parts) {
     gen += 1;
     const sheet = el("div", "sheet");
-    sheet.append(...parts, footer());
+    sheet.append(...parts.filter(Boolean), footer());
     root.replaceChildren(sheet);
     window.scrollTo(0, 0);
   }
@@ -340,7 +340,8 @@
     document.title = "Zzzap";
     const box = el("div", "notfound z-message");
     box.append(el("h1", null, title));
-    if (withGet) box.append(getZzzap(token, { copy: false }));
+    const get = withGet ? getZzzap(token, { copy: false }) : null;
+    if (get) box.append(get);
     show(box);
   }
 
