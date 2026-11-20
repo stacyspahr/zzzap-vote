@@ -394,7 +394,7 @@
     shownKey = key;
     updateCounts = null;
 
-    document.title = `${first} wants your help choosing · Zzzap`;
+    document.title = `${first} wants your opinion · Zzzap`;
     const card = el("div", "card live-card z-card" + (closed ? " closed" : ""));
     const row = el("div", "live-row");
     const pill = el("span", "live-pill");
