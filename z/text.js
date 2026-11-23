@@ -11,7 +11,7 @@
 // The browser signs in anonymously first, so the server knows it's the same
 // voter on every visit (one vote per spot).
 // Totals only, never who picked what. No comments.
-// Add ?sample (or ?sample=group, open, solo, slow, voted, closed, closed1, closedmany, pulled, notfound,
+// Add ?sample (or ?sample=group, open, solo, slow, voted, closed, closed0, closed1, closedmany, closedtie, pulled, notfound,
 // error) to see each state without the server.
 
 (function () {
@@ -55,28 +55,60 @@
     return typeof s === "number" ? s * 1000 : null;
   }
 
+  // The app's time line (PollDetailView detailRemainingText): "2d 3h left",
+  // "4h 59m left", "5h left", then "59:59 left" in the last hour.
   function timeLeft(endsAtMs) {
     if (!endsAtMs) return "";
-    const ms = endsAtMs - Date.now();
-    if (ms <= 0) return null;
-    const mins = Math.floor(ms / 60000);
-    const d = Math.floor(mins / 1440), h = Math.floor((mins % 1440) / 60), m = mins % 60;
-    if (d > 0) return `Ends in ${d}d ${h}h`;
-    if (h > 0) return `Ends in ${h}h ${m}m`;
-    return `Ends in ${Math.max(m, 1)}m`;
+    const total = Math.floor((endsAtMs - Date.now()) / 1000);
+    if (total <= 0) return null;
+    if (total >= 86400) return `${Math.floor(total / 86400)}d ${Math.floor((total % 86400) / 3600)}h left`;
+    if (total >= 3600) {
+      const h = Math.floor(total / 3600), m = Math.floor((total % 3600) / 60);
+      return m > 0 ? `${h}h ${m}m left` : `${h}h left`;
+    }
+    return `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")} left`;
   }
 
-  // Whole percentages that always add up to 100 (largest remainder), same as surge.js.
+  // The app's "Ended today at 3:45 PM" / "yesterday at" / "Friday at"
+  // (naturalPastDate). Before the end time it ended early, like the app says.
+  function endedText(endsAtMs) {
+    if (!endsAtMs || endsAtMs > Date.now()) return "Ended early";
+    const d = new Date(endsAtMs);
+    const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const day = new Date(d); day.setHours(0, 0, 0, 0);
+    const days = Math.round((today - day) / 86400000);
+    if (days === 0) return `Ended today at ${time}`;
+    if (days === 1) return `Ended yesterday at ${time}`;
+    return `Ended ${d.toLocaleDateString("en-US", { weekday: "long" })} at ${time}`;
+  }
+
+  // The app's roundedPercentages (Models.swift): largest remainder, but the
+  // same count always gets the same number, so 1-1-1 is 33/33/33.
   function percentages(counts) {
     const total = counts.reduce((a, b) => a + b, 0);
     if (!total) return counts.map(() => 0);
-    const exact = counts.map(c => (c / total) * 100);
-    const pcts = exact.map(Math.floor);
+    const pcts = counts.map(c => Math.floor(c * 100 / total));
     let left = 100 - pcts.reduce((a, b) => a + b, 0);
-    exact.map((v, i) => [v - Math.floor(v), i])
-      .sort((a, b) => b[0] - a[0])
-      .forEach(([, i]) => { if (left > 0) { pcts[i] += 1; left -= 1; } });
+    const groups = new Map();
+    counts.forEach((c, i) => { if (!groups.has(c)) groups.set(c, []); groups.get(c).push(i); });
+    const order = [...groups.entries()].sort(([a], [b]) => {
+      const ra = a * 100 % total, rb = b * 100 % total;
+      return ra !== rb ? rb - ra : b - a;
+    });
+    for (const [count, idx] of order) {
+      if (left <= 0) break;
+      if (count * 100 % total === 0 || idx.length > left) break;
+      idx.forEach(i => { pcts[i] += 1; });
+      left -= idx.length;
+    }
     return pcts;
+  }
+
+  // The app's resultLabelText: "2 votes", and the percent from 5 votes up.
+  function resultLabel(count, total, pct) {
+    const words = `${count} ${count === 1 ? "vote" : "votes"}`;
+    return total >= 5 ? `${words} · ${pct}%` : words;
   }
 
   function cleanPhoto(url) {
@@ -184,8 +216,9 @@
   function sampleApi(kind) {
     // closed1: ended, one voter (you). closedmany: ended, 26 votes, you
     // picked the winner. closed: ended, 3 votes, you didn't vote.
-    const many = kind === "closedmany";
-    const counts = kind === "closed1" ? [1, 0] : many ? [14, 9, 3] : [2, 1];
+    const many = kind === "closedmany" || kind === "closedtie";
+    const counts = kind === "closed1" ? [1, 0] : kind === "closed0" ? [0, 0]
+      : kind === "closedtie" ? [1, 1, 1] : many ? [14, 9, 3] : [2, 1];
     let mine = kind === "voted" || kind === "closed1" || many ? 0 : null;
     const usedSpot = "s2";
     const poll = () => ({
@@ -195,7 +228,7 @@
       openBallot: kind === "open",
       senderFirstName: "Stacy",
       senderPhotoURL: null,
-      closed: kind === "closed" || kind === "closed1" || many,
+      closed: kind.startsWith("closed"),
       onlyOne: kind === "solo",
     });
     return {
@@ -363,14 +396,15 @@
   // never looks stuck (Stacy, 11/23).
   function renderLoading() {
     updateCounts = null;
-    const card = el("div", "card live-card z-skel");
+    const card = el("div", "z-block z-skel");
     card.setAttribute("aria-label", "Loading");
-    card.append(el("div", "bone pill"), el("div", "bone q1"), el("div", "bone q2"));
-    for (let i = 0; i < 3; i++) card.append(el("div", "bone opt"));
+    card.append(el("div", "bone q1"), el("div", "bone q2"), el("div", "bone t"));
+    const rows = el("div", "z-block z-skel-rows");
+    for (let i = 0; i < 3; i++) rows.append(el("div", "bone opt"));
     const head = el("div", "z-sender z-skel-head");
     head.append(el("div", "z-avatar bone"), el("div", "bone name"));
     const later = el("p", "z-later", "Almost there");
-    show(head, card, later);
+    show(head, card, rows, later);
     const mine = gen;
     setTimeout(() => { if (gen === mine) later.classList.add("on"); }, 3000);
   }
@@ -476,32 +510,34 @@
     updateCounts = null;
 
     document.title = `${first} wants your opinion · Zzzap`;
-    const card = el("div", "card live-card z-card" + (closed ? " closed" : ""));
-    const row = el("div", "live-row");
-    const pill = el("span", "live-pill");
-    pill.append(el("span", "dot"), document.createTextNode(closed ? "ENDED" : "LIVE"));
-    const ends = el("span", "ends", closed ? "" : (timeLeft(endsAt) || ""));
-    row.append(pill, ends);
-    card.append(row, el("div", "question", poll.question || ""));
+    // Laid out like the app's zzzap screen (Stacy, 11/23): the question
+    // centered with its time line, then each part in its own block with a
+    // small title. The big photo and name on top stay: from a text, who
+    // sent it comes first.
+    const summary = el("div", "z-block z-summary");
+    summary.append(el("div", "z-question", poll.question || ""),
+      el("div", "z-time", closed ? endedText(endsAt) : (timeLeft(endsAt) || "")));
+    if (closed) summary.append(el("div", "z-chip", voted ? "You voted" : "You didn't vote"));
 
     const error = el("p", "error hidden", "");
-    const parts = [sender(poll), card];
+    const parts = [sender(poll), summary];
 
     if (voted || closed) {
-      card.append(results(options, counts, mine, closed));
+      parts.push(...results(options, counts, voted ? mine : null, closed));
       parts.push(pitch(token, first, closed));
       show(...parts);
-      if (!closed) keepLive(token);
+      if (!closed) { keepLive(token); watchEnd(token, endsAt, true); }
       return;
     }
 
     if (group && !spot) {
-      card.append(whichOne(token, data, spots, first, note));
+      parts.push(el("div", "z-head", "Which one are you?"), whichOne(token, data, spots, first, note));
       show(...parts);
       watchEnd(token, endsAt);
       return;
     }
 
+    const block = el("div", "z-block z-rows");
     if (group && spot) {
       const as = el("div", "z-as");
       as.append(el("span", null, spot.name));
@@ -513,24 +549,35 @@
         render(token, data);
       });
       as.append(change);
-      card.append(as);
+      parts.push(as);
     }
     // Who sees the pick, before voting, like the app (Stacy, 11/22): a tinted
     // box so it reads as a notice, orange when the sender will know, green
     // when it's private (the app's colors, 11/23). onlyOne comes from the
     // server; until it's there, say nothing rather than guess.
-    if (poll.openBallot) card.append(el("p", "z-note warn", `${first} will see what you pick`));
-    else if (poll.onlyOne === true) card.append(el("p", "z-note warn", `You're the only one, so ${first} will know what you pick`));
-    else if (poll.onlyOne === false) card.append(el("p", "z-note safe", `Your pick is yours alone. Not even ${first} sees it.`));
+    if (poll.openBallot) parts.push(el("p", "z-note warn", `${first} will see what you pick`));
+    else if (poll.onlyOne === true) parts.push(el("p", "z-note warn", `You're the only one, so ${first} will know what you pick`));
+    else if (poll.onlyOne === false) parts.push(el("p", "z-note safe", `Your pick is yours alone. Not even ${first} sees it.`));
 
-    const list = el("div", "options");
+    // The app's vote: tap to pick (ring, then a yellow check), then Submit
+    // Vote; tapping the pick again clears it.
+    let picked = null;
     const buttons = options.map((opt, i) => {
       const btn = optionButton(opt);
-      list.append(btn);
-      btn.addEventListener("click", () => vote(i));
+      block.append(btn);
+      btn.addEventListener("click", () => {
+        picked = picked === i ? null : i;
+        buttons.forEach((b, j) => b.classList.toggle("picked", j === picked));
+        submitWrap.classList.toggle("on", picked !== null);
+      });
       return btn;
     });
-    card.append(list, error);
+    const submitWrap = el("div", "z-submit-wrap");
+    const submit = el("button", "z-submit", "Submit Vote");
+    submit.type = "button";
+    submit.addEventListener("click", () => { if (picked !== null) vote(picked); });
+    submitWrap.append(submit, el("p", "z-takebacks", "Choose wisely. No take-backs!"), error);
+    parts.push(el("div", "z-head", "Cast Your Vote"), block, submitWrap);
     show(...parts);
     watchEnd(token, endsAt);
     // Sign in now, so the tap only waits for the vote.
@@ -538,10 +585,10 @@
 
     async function vote(i) {
       buttons.forEach(b => (b.disabled = true));
+      submit.disabled = true;
+      submit.classList.add("sending");
+      submit.textContent = "Sending…";
       error.classList.add("hidden");
-      list.classList.add("sending");
-      buttons[i].classList.add("picked");
-      buttons[i].querySelector(".pct").textContent = "Sending…";
       try {
         const result = await api.vote(token, spot ? spot.spotToken : null, i);
         const already = result && (result.already === true || result.status === "already");
@@ -574,9 +621,9 @@
           load(token, true);
           return;
         }
-        list.classList.remove("sending");
-        buttons[i].classList.remove("picked");
-        buttons[i].querySelector(".pct").textContent = "";
+        submit.classList.remove("sending");
+        submit.textContent = "Submit Vote";
+        submit.disabled = false;
         buttons.forEach(b => (b.disabled = false));
         error.textContent = code === "functions/resource-exhausted"
           ? "Slow down a moment, then try again."
@@ -586,11 +633,7 @@
     }
   }
 
-  function optionButton(opt) {
-    const btn = el("button", "option");
-    btn.type = "button";
-    const fill = el("span", "fill");
-    const r = el("span", "row");
+  function answerLabel(opt) {
     const label = el("span", "z-label");
     if (opt.photo) {
       const img = el("img", "z-thumb");
@@ -599,8 +642,14 @@
       label.append(img);
     }
     label.append(el("span", "label", opt.text));
-    r.append(label, el("span", "pct", ""));
-    btn.append(fill, r);
+    return label;
+  }
+
+  // One answer row, like the app's: a ring, the answer.
+  function optionButton(opt) {
+    const btn = el("button", "z-row z-pick");
+    btn.type = "button";
+    btn.append(el("span", "z-ring"), answerLabel(opt));
     return btn;
   }
 
@@ -608,15 +657,12 @@
   // rule, 11/14); a name that already voted says so after the tap.
   function whichOne(token, data, spots, first, note) {
     const box = el("div", "z-which");
-    box.append(el("div", "z-which-title", "Which one are you?"));
     if (note) box.append(el("p", "error", note));
-    const list = el("div", "options");
+    const list = el("div", "z-block z-rows");
     spots.forEach(s => {
-      const btn = el("button", "option z-name");
+      const btn = el("button", "z-row z-name");
       btn.type = "button";
-      const r = el("span", "row");
-      r.append(el("span", "label", s.name));
-      btn.append(r);
+      btn.append(el("span", "label", s.name));
       btn.addEventListener("click", () => {
         save(token, { spot: s.spotToken });
         shownKey = null;
@@ -628,46 +674,55 @@
     return box;
   }
 
+  // The app's results (PollDetailView): "Live Results" / "Results", each
+  // answer with "N votes" (percent from 5 up), a bar under it measured
+  // against the leader, green for the leader, white for a tie at the top,
+  // red for the rest; your answer bold with a yellow "You". Returns the
+  // title and block; updateCounts moves them in place.
   function results(options, counts, mine, closed) {
-    const wrap = el("div", "results");
-    const list = el("div", "options");
-    const buttons = options.map(opt => {
-      const btn = optionButton(opt);
-      btn.disabled = true;
-      list.append(btn);
-      return btn;
+    const head = el("div", "z-head", closed ? "Results" : "Live Results");
+    const block = el("div", "z-block z-results");
+    const rows = options.map((opt, i) => {
+      const row = el("div", "z-res");
+      const top = el("div", "z-res-top");
+      const label = answerLabel(opt);
+      if (i === mine) label.append(el("span", "z-you", "You"));
+      const num = el("span", "z-num", "");
+      top.append(label, num);
+      const track = el("div", "z-track");
+      const fill = el("div", "z-fill");
+      track.append(fill);
+      row.append(top, track);
+      block.append(row);
+      return { row, num, fill };
     });
-    const meta = el("div", "meta");
-    const you = el("span", "you", "");
-    const label = el("span", null, "");
-    meta.append(you, label);
-    wrap.append(list, meta);
+    const empty = el("p", "z-empty hidden", "");
+    const locked = el("p", "z-locked", closed ? "" : "Your vote is locked in");
+    block.append(empty);
+    if (!closed && mine !== null) block.append(locked);
 
     function update(fresh, myPick, isClosed) {
       const c = fresh || options.map(() => 0);
+      const total = c.reduce((a, b) => a + b, 0);
       const pcts = percentages(c);
-      // The app's colors: the leader green, a tie at the top white, the
-      // rest gray; yellow is only your answer.
       const top = Math.max(0, ...c);
       const leaders = top > 0 ? c.filter(n => n === top).length : 0;
-      buttons.forEach((btn, i) => {
-        btn.querySelector(".pct").textContent = fresh ? `${pcts[i]}%` : "";
-        requestAnimationFrame(() => { btn.querySelector(".fill").style.width = `${fresh ? pcts[i] : 0}%`; });
+      const none = !fresh || (isClosed && total === 0);
+      rows.forEach(({ row, num, fill }, i) => {
+        row.classList.toggle("hidden", none);
+        num.textContent = fresh ? resultLabel(c[i], total, pcts[i]) : "";
         const leads = top > 0 && c[i] === top;
-        btn.classList.toggle("lead", leads && leaders === 1);
-        btn.classList.toggle("tied", leads && leaders > 1);
-        btn.classList.toggle("mine", i === myPick);
+        fill.className = "z-fill " + (leads ? (leaders > 1 ? "tie" : "lead") : "rest");
+        requestAnimationFrame(() => { fill.style.width = `${top > 0 ? (c[i] / top) * 100 : 0}%`; });
+        // Bold: your answer; if you didn't vote, the leader once it ended.
+        row.classList.toggle("bold", myPick !== null ? i === myPick : (isClosed && leads));
       });
-      const picked = myPick !== null && options[myPick] ? options[myPick].text : null;
-      you.textContent = picked ? `You picked ${picked}` : "";
-      if (!fresh) { label.textContent = isClosed ? "Final results are on the way" : ""; return; }
-      const total = c.reduce((a, b) => a + b, 0);
-      const word = isClosed ? "Final results" : "Live results";
-      label.textContent = `${leaders > 1 ? "Tied · " : ""}${total} ${total === 1 ? "vote" : "votes"} · ${word}`;
+      empty.classList.toggle("hidden", !none);
+      empty.textContent = !fresh ? "Final results are on the way" : "No one voted on this zzzap.";
     }
     update(counts, mine, closed);
     updateCounts = update;
-    return wrap;
+    return [head, block];
   }
 
   // After voting, keep the totals moving while the page is in front.
@@ -679,18 +734,20 @@
     }, 10000);
   }
 
-  // Before voting, reload once it ends, so nobody taps a closed zzzap.
-  function watchEnd(token, endsAt) {
+  // The time line ticks every second, like the app; once it ends, reload
+  // so nobody votes on a closed zzzap (after voting, keepLive's refresh
+  // picks up the end, so only the line updates).
+  function watchEnd(token, endsAt, voted) {
     if (!endsAt) return;
     const mine = gen;
     const timer = setInterval(() => {
       if (mine !== gen) { clearInterval(timer); return; }
       const left = timeLeft(endsAt);
-      const ends = root.querySelector(".ends");
-      if (left && ends) { ends.textContent = left; return; }
+      const line = root.querySelector(".z-time");
+      if (left && line) { line.textContent = left; return; }
       clearInterval(timer);
-      load(token, true);
-    }, 30000);
+      if (!voted) load(token, true);
+    }, 1000);
   }
 
   let loading = false;

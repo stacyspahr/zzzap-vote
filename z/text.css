@@ -25,21 +25,84 @@
 .z-thumb { width: 52px; height: 52px; border-radius: 10px; object-fit: cover; flex-shrink: 0; background: #1d1d26; }
 .option .label { overflow-wrap: anywhere; }
 
-/* Open Ballot line above the answers. */
-/* Who sees the pick: a tinted box, the app's orange (sender will know) or
-   green (private), so it reads as a notice and not as part of the question. */
-.z-note {
-  margin: -2px 0 14px; padding: 10px 12px; border-radius: 12px;
-  font-size: 14px; font-weight: 600; line-height: 1.35;
+/* ---------- The app's zzzap screen (Stacy, 11/23) ----------
+   The app's warm page, blocks like its list sections (#1C1C1E, big
+   corners), bold gray titles above them, hairlines between rows. */
+body[data-header="text"], body[data-header="text"] .z-page .sheet {
+  background: linear-gradient(180deg, #1A170F 0%, #0A0A0F 45%, #0F0D1A 100%);
 }
-.z-note.warn { color: #FFB340; background: rgba(255,159,10,.12); box-shadow: inset 0 0 0 1px rgba(255,159,10,.32); }
-.z-note.safe { color: #6EE39A; background: rgba(51,217,115,.10); box-shadow: inset 0 0 0 1px rgba(51,217,115,.26); }
+body[data-header="text"] { background-attachment: fixed; }
+body[data-header="text"] .z-page .sheet { background: transparent; }
+.z-block { background: #1C1C1E; border-radius: 26px; padding: 0 18px; }
+.z-head { font-size: 17px; font-weight: 700; color: #8E8E93; margin: 26px 0 10px 18px; }
+
+/* The question, its time line, and once it ended "You voted". */
+.z-summary { padding: 22px 20px 20px; text-align: center; }
+.z-question {
+  font-family: -apple-system, "SF Pro Display", sans-serif;
+  font-size: 22px; font-weight: 700; line-height: 1.25; letter-spacing: -.01em;
+  overflow-wrap: anywhere;
+}
+.z-time { color: #8E8E93; font-size: 13px; margin-top: 8px; font-variant-numeric: tabular-nums; }
+.z-chip { display: inline-block; margin-top: 10px; padding: 4px 10px; border-radius: 100px; background: #2C2C2E; color: #8E8E93; font-size: 12px; }
+
+/* Answer rows: a ring that turns into the yellow check when picked. */
+.z-row {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px;
+  padding: 13px 0; background: none; border: none; text-align: left; cursor: pointer;
+  font: inherit; font-size: 17px; color: var(--text);
+  border-top: 1px solid rgba(255,255,255,.09);
+}
+.z-row:first-child { border-top: none; }
+.z-row:disabled { cursor: default; }
+.z-ring { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; box-shadow: inset 0 0 0 1.6px #8E8E93; position: relative; transition: background .2s ease, box-shadow .2s ease; }
+.z-pick.picked { font-weight: 600; }
+.z-pick.picked .z-ring { background: var(--yellow); box-shadow: none; }
+.z-pick.picked .z-ring::after {
+  content: ""; position: absolute; left: 7.5px; top: 4px; width: 5px; height: 10px;
+  border: solid #1a1400; border-width: 0 2.4px 2.4px 0; transform: rotate(45deg);
+}
+.z-row .label { overflow-wrap: anywhere; }
+
+/* Submit Vote: the app's yellow button and its line, once an answer is picked. */
+.z-submit-wrap { display: none; margin-top: 14px; text-align: center; }
+.z-submit-wrap.on { display: block; }
+.z-submit {
+  width: 100%; padding: 15px 16px; border: none; border-radius: 100px; cursor: pointer;
+  background: var(--yellow); color: #1a1400; font: inherit; font-size: 17px; font-weight: 700;
+}
+.z-submit.sending { animation: sending 1.2s ease-in-out infinite; }
+.z-takebacks { color: #8E8E93; font-size: 12px; margin-top: 10px; }
+
+/* Results: the answer and "N votes", a bar under it. */
+.z-results { padding-top: 4px; padding-bottom: 4px; }
+.z-res { padding: 12px 0 14px; border-top: 1px solid rgba(255,255,255,.09); }
+.z-res:first-child { border-top: none; }
+.z-res-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 17px; margin-bottom: 8px; }
+.z-res.bold .label { font-weight: 600; }
+.z-you { color: var(--yellow); font-size: 12px; font-weight: 600; margin-left: 6px; }
+.z-num { color: #8E8E93; font-size: 15px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.z-track { height: 20px; border-radius: 6px; background: #2C2C2E; overflow: hidden; }
+.z-fill { height: 100%; width: 0; border-radius: 6px; transition: width .3s ease-in-out; }
+.z-fill.lead { background: #30D158; }
+.z-fill.tie { background: #fff; }
+.z-fill.rest { background: rgba(255,69,58,.6); }
+.z-empty { color: #8E8E93; font-size: 15px; text-align: center; padding: 18px 0; }
+.z-locked { color: #8E8E93; font-size: 12px; padding: 4px 0 12px; }
+
+/* Who sees the pick: the app's own block, its orange (the sender will
+   know) or green (private), centered. */
+.z-note {
+  margin: 14px 0 0; padding: 14px 18px; border-radius: 26px; text-align: center;
+  font-size: 15px; line-height: 1.35;
+}
+.z-note.warn { color: #FF9F0A; background: rgba(255,159,10,.1); }
+.z-note.safe { color: #30D158; background: rgba(48,209,88,.1); }
 
 /* Group link: "Which one are you?" */
-.z-which-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
 .z-which .error { margin: 0 0 10px; }
 .z-notlisted { margin-top: 12px; }
-.z-as { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: -4px 0 12px; font-size: 14px; font-weight: 600; color: var(--dim); }
+.z-as { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 14px 4px 0; font-size: 14px; font-weight: 600; color: var(--dim); }
 .z-change {
   background: none; border: none; cursor: pointer; padding: 4px 0;
   color: var(--text); font: inherit; font-size: 13.5px; font-weight: 600;
@@ -70,20 +133,22 @@ footer.z-quiet .bolts, footer.z-quiet .tagline { display: none; }
 .z-message .z-get { margin-top: 22px; }
 .z-retry { margin-top: 22px; }
 /* Loading: the card's outline with a shimmer, "Almost there" after 3s. */
-.z-skel .bone, .z-skel-head .bone {
+.z-skel .bone, .z-skel-head .bone, .z-skel-rows .bone {
   border-radius: 8px;
   background: linear-gradient(90deg, rgba(255,255,255,.06) 30%, rgba(255,255,255,.13) 50%, rgba(255,255,255,.06) 70%);
   background-size: 300% 100%;
   animation: z-shimmer 1.6s ease-in-out infinite;
 }
-.z-skel .pill { width: 54px; height: 12px; border-radius: 100px; }
-.z-skel .q1 { height: 20px; margin: 16px 0 8px; width: 86%; }
-.z-skel .q2 { height: 20px; margin-bottom: 18px; width: 52%; }
-.z-skel .opt { height: 52px; border-radius: 15px; margin-top: 9px; }
+.z-skel { padding: 22px 20px 20px; display: flex; flex-direction: column; align-items: center; }
+.z-skel .q1 { height: 22px; width: 86%; }
+.z-skel .q2 { height: 22px; width: 52%; margin-top: 8px; }
+.z-skel .t { height: 12px; width: 70px; margin-top: 12px; }
+.z-skel-rows { margin-top: 46px; padding: 6px 18px; }
+.z-skel-rows .opt { height: 22px; margin: 15px 0; width: 60%; }
 @keyframes z-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
 .z-skel-head .z-avatar { border-radius: 50%; box-shadow: none; }
 .z-skel-head .name { width: 96px; height: 24px; }
-@media (prefers-reduced-motion: reduce) { .z-skel .bone, .z-skel-head .bone { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .z-skel .bone, .z-skel-head .bone, .z-skel-rows .bone { animation: none; } }
 .z-later { color: var(--dim); text-align: center; font-size: 13px; margin-top: 14px; opacity: 0; transition: opacity .4s ease; }
 .z-later.on { opacity: 1; }
 /* surge.css colors links yellow on .notfound; the button keeps its dark text. */
