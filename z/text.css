@@ -57,7 +57,23 @@
 .z-message { padding-top: 22vh; }
 .z-message .z-get { margin-top: 22px; }
 .z-retry { margin-top: 22px; }
-.z-loading { color: var(--dim); text-align: center; padding-top: 30vh; font-size: 14px; }
+/* Loading: the card's outline with a shimmer, "Almost there" after 3s. */
+.z-skel .bone, .z-skel-head .bone {
+  border-radius: 8px;
+  background: linear-gradient(90deg, rgba(255,255,255,.06) 30%, rgba(255,255,255,.13) 50%, rgba(255,255,255,.06) 70%);
+  background-size: 300% 100%;
+  animation: z-shimmer 1.6s ease-in-out infinite;
+}
+.z-skel .pill { width: 54px; height: 12px; border-radius: 100px; }
+.z-skel .q1 { height: 20px; margin: 16px 0 8px; width: 86%; }
+.z-skel .q2 { height: 20px; margin-bottom: 18px; width: 52%; }
+.z-skel .opt { height: 52px; border-radius: 15px; margin-top: 9px; }
+@keyframes z-shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+.z-skel-head .z-avatar { border-radius: 50%; box-shadow: none; }
+.z-skel-head .name { width: 96px; height: 24px; }
+@media (prefers-reduced-motion: reduce) { .z-skel .bone, .z-skel-head .bone { animation: none; } }
+.z-later { color: var(--dim); text-align: center; font-size: 13px; margin-top: 14px; opacity: 0; transition: opacity .4s ease; }
+.z-later.on { opacity: 1; }
 /* surge.css colors links yellow on .notfound; the button keeps its dark text. */
 .z-message .get-btn { color: #1a1400; }
 /* A short page: no fade under the clock covering the sender's name. */

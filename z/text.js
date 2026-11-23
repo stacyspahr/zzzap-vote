@@ -11,7 +11,7 @@
 // The browser signs in anonymously first, so the server knows it's the same
 // voter on every visit (one vote per spot).
 // Totals only, never who picked what. No comments.
-// Add ?sample (or ?sample=group, open, solo, voted, closed, pulled, notfound,
+// Add ?sample (or ?sample=group, open, solo, slow, voted, closed, pulled, notfound,
 // error) to see each state without the server.
 
 (function () {
@@ -157,9 +157,20 @@
     return fns;
   }
 
+  // Wakes the vote function while the page loads, so the tap on an answer
+  // doesn't wait on a cold start too (Stacy, 11/23). A vote with no token is
+  // refused before any database work; the answer is ignored.
+  let woke = false;
+  function wakeVote(call) {
+    if (woke) return;
+    woke = true;
+    call("castTextVote", {}).catch(() => {});
+  }
+
   const liveApi = {
     async peek(token) {
       const call = await loadFunctions();
+      wakeVote(call);
       return call("peekTextZzzap", { token });
     },
     async vote(token, spotToken, optionIndex) {
@@ -186,7 +197,7 @@
     });
     return {
       async peek() {
-        await new Promise(r => setTimeout(r, 300));
+        await new Promise(r => setTimeout(r, kind === "slow" ? 6000 : 300));
         if (kind === "error") throw new Error("sample");
         if (kind === "pulled") return { status: "pulled", poll: { senderFirstName: "Stacy" } };
         if (kind === "notfound") return { status: "notFound" };
@@ -344,9 +355,21 @@
     window.scrollTo(0, 0);
   }
 
+  // While the zzzap loads (up to ~5 seconds on a cold start): the card's
+  // outline with a soft shimmer, then "Almost there" after 3 seconds so it
+  // never looks stuck (Stacy, 11/23).
   function renderLoading() {
     updateCounts = null;
-    show(el("div", "z-loading", "Loading"));
+    const card = el("div", "card live-card z-skel");
+    card.setAttribute("aria-label", "Loading");
+    card.append(el("div", "bone pill"), el("div", "bone q1"), el("div", "bone q2"));
+    for (let i = 0; i < 3; i++) card.append(el("div", "bone opt"));
+    const head = el("div", "z-sender z-skel-head");
+    head.append(el("div", "z-avatar bone"), el("div", "bone name"));
+    const later = el("p", "z-later", "Almost there");
+    show(head, card, later);
+    const mine = gen;
+    setTimeout(() => { if (gen === mine) later.classList.add("on"); }, 3000);
   }
 
   function renderMessage(title, token, withGet) {
