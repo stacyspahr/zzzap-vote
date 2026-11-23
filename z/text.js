@@ -713,7 +713,11 @@
         num.textContent = fresh ? resultLabel(c[i], total, pcts[i]) : "";
         const leads = top > 0 && c[i] === top;
         fill.className = "z-fill " + (leads ? (leaders > 1 ? "tie" : "lead") : "rest");
-        requestAnimationFrame(() => { fill.style.width = `${top > 0 ? (c[i] / top) * 100 : 0}%`; });
+        // Next frame so the bar grows from empty; the timer is a backstop
+        // for when a frame never comes (it skipped sometimes, 11/23).
+        const width = () => { fill.style.width = `${top > 0 ? (c[i] / top) * 100 : 0}%`; };
+        requestAnimationFrame(width);
+        setTimeout(width, 150);
         // Bold: your answer; if you didn't vote, the leader once it ended.
         row.classList.toggle("bold", myPick !== null ? i === myPick : (isClosed && leads));
       });
