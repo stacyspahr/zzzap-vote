@@ -27,6 +27,7 @@
 
 /* Open Ballot line above the answers. */
 .hint.z-open { margin: -4px 0 12px; color: var(--text); font-weight: 600; }
+.hint.z-secret { margin: -4px 0 12px; }
 
 /* Group link: "Which one are you?" */
 .z-which-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; }

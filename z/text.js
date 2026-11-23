@@ -11,7 +11,7 @@
 // The browser signs in anonymously first, so the server knows it's the same
 // voter on every visit (one vote per spot).
 // Totals only, never who picked what. No comments.
-// Add ?sample (or ?sample=group, open, voted, closed, pulled, notfound,
+// Add ?sample (or ?sample=group, open, solo, voted, closed, pulled, notfound,
 // error) to see each state without the server.
 
 (function () {
@@ -182,6 +182,7 @@
       senderFirstName: "Stacy",
       senderPhotoURL: null,
       closed: kind === "closed",
+      onlyOne: kind === "solo",
     });
     return {
       async peek() {
@@ -448,7 +449,11 @@
       as.append(change);
       card.append(as);
     }
+    // Who sees the pick, before voting, like the app (Stacy, 11/22). onlyOne
+    // comes from the server; until it's there, say nothing rather than guess.
     if (poll.openBallot) card.append(el("p", "hint z-open", `${first} will see what you pick`));
+    else if (poll.onlyOne === true) card.append(el("p", "hint z-open", `Heads up: you're the only one, so ${first} will know what you pick`));
+    else if (poll.onlyOne === false) card.append(el("p", "hint z-secret", `Your pick is yours alone. Not even ${first} sees it.`));
 
     const list = el("div", "options");
     const buttons = options.map((opt, i) => {
