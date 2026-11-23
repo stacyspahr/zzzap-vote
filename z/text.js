@@ -11,7 +11,7 @@
 // The browser signs in anonymously first, so the server knows it's the same
 // voter on every visit (one vote per spot).
 // Totals only, never who picked what. No comments.
-// Add ?sample (or ?sample=group, open, solo, slow, voted, closed, pulled, notfound,
+// Add ?sample (or ?sample=group, open, solo, slow, voted, closed, closed1, closedmany, pulled, notfound,
 // error) to see each state without the server.
 
 (function () {
@@ -182,17 +182,20 @@
 
   // Sample pages: the whole flow in this browser, no server.
   function sampleApi(kind) {
-    const counts = [2, 1];
-    let mine = kind === "voted" ? 0 : null;
+    // closed1: ended, one voter (you). closedmany: ended, 26 votes, you
+    // picked the winner. closed: ended, 3 votes, you didn't vote.
+    const many = kind === "closedmany";
+    const counts = kind === "closed1" ? [1, 0] : many ? [14, 9, 3] : [2, 1];
+    let mine = kind === "voted" || kind === "closed1" || many ? 0 : null;
     const usedSpot = "s2";
     const poll = () => ({
       question: "Blue one or green one for the party?",
-      options: ["Blue", "Green"],
+      options: many ? ["Blue", "Green", "Red"] : ["Blue", "Green"],
       endsAt: new Date(Date.now() + 5 * 3600e3).toISOString(),
       openBallot: kind === "open",
       senderFirstName: "Stacy",
       senderPhotoURL: null,
-      closed: kind === "closed",
+      closed: kind === "closed" || kind === "closed1" || many,
       onlyOne: kind === "solo",
     });
     return {
@@ -201,7 +204,7 @@
         if (kind === "error") throw new Error("sample");
         if (kind === "pulled") return { status: "pulled", poll: { senderFirstName: "Stacy" } };
         if (kind === "notfound") return { status: "notFound" };
-        const shown = mine !== null || kind === "closed";
+        const shown = mine !== null || kind.startsWith("closed");
         if (kind === "group") {
           return {
             status: "ok", kind: "group", poll: poll(),
