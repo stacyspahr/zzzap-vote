@@ -134,15 +134,23 @@
 
   // What this browser remembers per link: the name it picked on a group
   // link and its answer, so a reload shows its pick.
+  // Samples remember only while the page is open, so voting on one never
+  // marks the others as voted (they all share the testtest link).
+  const isSample = new URLSearchParams(location.search).has("sample");
+  let sampleMemory = {};
   function saved(token) {
+    if (isSample) return sampleMemory;
     try { return JSON.parse(localStorage.getItem(`zzzap.z.${token}`)) || {}; } catch { return {}; }
   }
   function save(token, data) {
+    if (isSample) { sampleMemory = { ...sampleMemory, ...data }; return; }
     try { localStorage.setItem(`zzzap.z.${token}`, JSON.stringify({ ...saved(token), ...data })); } catch { /* private mode */ }
   }
   function forget(token) {
+    if (isSample) { sampleMemory = {}; return; }
     try { localStorage.removeItem(`zzzap.z.${token}`); } catch { /* private mode */ }
   }
+
 
   // ---------- Data ----------
 
