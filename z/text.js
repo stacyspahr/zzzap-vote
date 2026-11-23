@@ -232,7 +232,9 @@
     const poll = () => ({
       question: "Blue one or green one for the party?",
       options: many ? ["Blue", "Green", "Red"] : ["Blue", "Green"],
-      endsAt: new Date(Date.now() + 5 * 3600e3).toISOString(),
+      // Ended ones ended on time two hours ago ("Ended today at …"): only
+      // everyone voting ends one early, so a sample that didn't vote can't.
+      endsAt: new Date(Date.now() + (kind.startsWith("closed") ? -2 : 5) * 3600e3).toISOString(),
       openBallot: kind === "open",
       senderFirstName: "Stacy",
       senderPhotoURL: null,
