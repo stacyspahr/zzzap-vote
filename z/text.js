@@ -372,26 +372,66 @@
     setTimeout(() => { if (gen === mine) later.classList.add("on"); }, 3000);
   }
 
-  function renderMessage(title, token, withGet) {
+  // The animated Zzzap lockup (zzzap-app.com's lightning strike) on the
+  // pages with no zzzap to show: pulled, gone, couldn't load (Stacy, 11/23).
+  const BRAND = "/z/brand/";
+  const BRAND_V = "?v=202611230800";
+  let brandMarkup = null;
+  function loadBrand() {
+    if (!brandMarkup) {
+      const css = document.createElement("link");
+      css.rel = "stylesheet";
+      css.href = BRAND + "logo-animation.css" + BRAND_V;
+      document.head.appendChild(css);
+      brandMarkup = new Promise((resolve, reject) => {
+        const s = document.createElement("script");
+        s.src = BRAND + "logo-markup.js" + BRAND_V;
+        s.onload = () => resolve(window.ZZZAP_LOGO_MARKUP);
+        s.onerror = reject;
+        document.body.appendChild(s);
+      });
+      brandMarkup.catch(() => { brandMarkup = null; });
+    }
+    return brandMarkup;
+  }
+  function brandLogo() {
+    const spot = el("div", "z-brand");
+    const mine = gen + 1; // show() is about to bump gen
+    loadBrand().then(markup => {
+      if (gen !== mine || !markup) return;
+      spot.innerHTML = markup;
+      // The strike script binds to #zzzap-logo when it runs, so run it fresh.
+      const s = document.createElement("script");
+      s.src = BRAND + "logo-animation.js" + BRAND_V;
+      document.body.appendChild(s);
+    }, () => {
+      const img = el("img");
+      img.src = "/zzzap-bolts.svg";
+      img.alt = "Zzzap";
+      spot.append(img);
+    });
+    return spot;
+  }
+
+  function renderMessage(title, token, withGet, retry) {
     updateCounts = null;
     document.title = "Zzzap";
     const box = el("div", "notfound z-message");
-    box.append(el("h1", null, title));
+    box.append(brandLogo(), el("h1", null, title));
+    if (retry) box.append(retry);
     const get = withGet ? getZzzap(token, { copy: false }) : null;
     if (get) box.append(get);
     show(box);
+    // The lockup already says Zzzap and its tagline; the footer keeps just the legal line.
+    const foot = root.querySelector("footer");
+    if (foot) foot.classList.add("z-quiet");
   }
 
   function renderError(token) {
-    updateCounts = null;
-    document.title = "Zzzap";
-    const box = el("div", "notfound z-message");
-    box.append(el("h1", null, "Couldn't load this zzzap. Try again in a minute."));
     const retry = el("button", "share-btn z-retry", "Try Again");
     retry.type = "button";
     retry.addEventListener("click", () => load(token));
-    box.append(retry);
-    show(box);
+    renderMessage("Couldn't load this zzzap", token, false, retry);
   }
 
   function render(token, data, note) {
@@ -472,11 +512,13 @@
       as.append(change);
       card.append(as);
     }
-    // Who sees the pick, before voting, like the app (Stacy, 11/22). onlyOne
-    // comes from the server; until it's there, say nothing rather than guess.
-    if (poll.openBallot) card.append(el("p", "hint z-open", `${first} will see what you pick`));
-    else if (poll.onlyOne === true) card.append(el("p", "hint z-open", `Heads up: you're the only one, so ${first} will know what you pick`));
-    else if (poll.onlyOne === false) card.append(el("p", "hint z-secret", `Your pick is yours alone. Not even ${first} sees it.`));
+    // Who sees the pick, before voting, like the app (Stacy, 11/22): a tinted
+    // box so it reads as a notice, orange when the sender will know, green
+    // when it's private (the app's colors, 11/23). onlyOne comes from the
+    // server; until it's there, say nothing rather than guess.
+    if (poll.openBallot) card.append(el("p", "z-note warn", `${first} will see what you pick`));
+    else if (poll.onlyOne === true) card.append(el("p", "z-note warn", `You're the only one, so ${first} will know what you pick`));
+    else if (poll.onlyOne === false) card.append(el("p", "z-note safe", `Your pick is yours alone. Not even ${first} sees it.`));
 
     const list = el("div", "options");
     const buttons = options.map((opt, i) => {

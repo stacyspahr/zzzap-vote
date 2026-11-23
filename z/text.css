@@ -26,8 +26,14 @@
 .option .label { overflow-wrap: anywhere; }
 
 /* Open Ballot line above the answers. */
-.hint.z-open { margin: -4px 0 12px; color: var(--text); font-weight: 600; }
-.hint.z-secret { margin: -4px 0 12px; }
+/* Who sees the pick: a tinted box, the app's orange (sender will know) or
+   green (private), so it reads as a notice and not as part of the question. */
+.z-note {
+  margin: -2px 0 14px; padding: 10px 12px; border-radius: 12px;
+  font-size: 14px; font-weight: 600; line-height: 1.35;
+}
+.z-note.warn { color: #FFB340; background: rgba(255,159,10,.12); box-shadow: inset 0 0 0 1px rgba(255,159,10,.32); }
+.z-note.safe { color: #6EE39A; background: rgba(51,217,115,.10); box-shadow: inset 0 0 0 1px rgba(51,217,115,.26); }
 
 /* Group link: "Which one are you?" */
 .z-which-title { font-size: 15px; font-weight: 700; margin-bottom: 10px; }
@@ -54,7 +60,13 @@
 .z-pitch .open-app { margin-top: 12px; }
 
 /* Pulled, gone, or couldn't load. */
-.z-message { padding-top: 22vh; }
+.z-message { padding-top: 4vh; }
+.z-message h1 { font-size: 26px; letter-spacing: -.01em; margin-top: 6px; }
+/* The animated lockup, smaller than zzzap-app.com's header. */
+.z-brand { min-height: 230px; display: grid; place-items: center; }
+.z-brand .logo-stage .logo { height: 230px; }
+.z-brand > img { width: 96px; }
+footer.z-quiet .bolts, footer.z-quiet .tagline { display: none; }
 .z-message .z-get { margin-top: 22px; }
 .z-retry { margin-top: 22px; }
 /* Loading: the card's outline with a shimmer, "Almost there" after 3s. */
