@@ -325,8 +325,13 @@
     return url.replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/$/, "");
   }
 
+  // A person goes by their first name; a business named "The Mill House"
+  // keeps its whole name, never just "The".
   function firstName(page) {
-    return (page.displayName || "").split(" ")[0] || page.displayName;
+    const full = page.displayName || "";
+    const first = full.split(" ")[0];
+    if (!first || /^(the|a|an)$/i.test(first)) return full;
+    return first;
   }
 
   function timeLeft(endsAt) {

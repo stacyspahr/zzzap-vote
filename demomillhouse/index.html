@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="robots" content="noindex">
+<title>The Mill House · Zzzap</title>
+<!-- A demo Surge page: the real page design (surge/surge.js + surge.css)
+     filled with sample data, so it always looks like what Surge accounts get.
+     Bump ?v= with 404.html whenever surge.js or surge.css changes. -->
+<link rel="stylesheet" href="/surge/surge.css?v=202611101200">
+</head>
+<body>
+<div class="status-scrim"></div>
+<div class="phone" id="page"></div>
+
+<!-- Extra sections for this demo, added under the past zzzaps. -->
+<template id="surge-extra">
+  <div class="section">
+    <div class="section-head">Since 1929</div>
+    <img class="extra-img" src="/demomillhouse/building.jpg" alt="The Mill House, the old Edward Hines Lumber Company office">
+    <p class="extra-text">The old Edward Hines Lumber Company office, now four rooms, a mercantile and an event space on Highway 20.</p>
+  </div>
+  <div class="section">
+    <div class="section-head">Guests stay in the loop</div>
+    <img class="extra-img" src="/demomillhouse/room.jpg" alt="The Sugar Pine Room">
+    <p class="extra-text"><b>Every guest can follow along after checkout.</b> Ask the people who stayed what to change, what to stock, and when to host the next night.</p>
+    <p class="extra-text">Locals vote too: Cribbage Nights, bird festival weekend, the next event in the banquet room.</p>
+  </div>
+  <div class="section">
+    <div class="section-head">In every room</div>
+    <div class="sign">
+      <img src="/demomillhouse/qr.png" alt="QR code to follow The Mill House on Zzzap">
+      <div>
+        <div class="s1">Follow on Zzzap</div>
+        <div class="s2">Scan to vote on what's next at The Mill House</div>
+        <div class="s3">Quick questions from your hosts. Tap an answer, see what everyone picked.</div>
+      </div>
+    </div>
+    <div class="sign-note">Framed on the nightstand in all four rooms and by the coffee bar. Guests scan it with their morning coffee.</div>
+  </div>
+</template>
+
+<script>
+window.SURGE_DEMO = {
+  handle: "themillhouseinhines",
+  displayName: "The Mill House",
+  category: "Bed & Breakfast",
+  bio: "Where History and Hospitality Meet. A family-run bed and breakfast in the historic Hines Lumber Company office. Our slice of eastern Oregon.",
+  // A business: the inn at dusk behind the page, the logo in the circle.
+  headerPhotoURL: "/demomillhouse/dusk.jpg",
+  photoURL: "/demomillhouse/logo-round.jpg",
+  links: { instagram: "themillhouseinhines", facebook: "themillhouseinhines" },
+  live: {
+    pollId: "demo-millhouse-live",
+    question: "The old company vault needs a new job. What should it be?",
+    options: ["Wine and whiskey room", "Mini museum of mill history", "Game room", "Quiet reading nook"],
+    sampleCounts: [41, 33, 18, 11],
+    endsAt: "+31h"
+  },
+  past: [
+    { question: "December Cribbage Night snack?", winner: "Huckleberry hand pies", winnerPct: 47, endedAt: "2026-11-19" },
+    { question: "New in the Mercantile. What should we carry?", winner: "Harney County honey", winnerPct: 39, endedAt: "2026-11-03" },
+    { question: "Fall breakfast special?", winner: "Pumpkin pancakes with bacon", winnerPct: 52, endedAt: "2026-10-16" }
+  ]
+};
+</script>
+<script src="/surge/surge.js?v=202611241100"></script>
+</body>
+</html>
