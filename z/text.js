@@ -323,21 +323,59 @@
       el("div", "t1", closed ? (named ? `${first} is on Zzzap` : "Get Zzzap") : "See how it ends"),
       el("div", "t2", "With the free Zzzap app you can:"),
     );
-    const perks = el("ul", "perks");
     // Ended: they may not have voted, so no "your vote" line.
+    txt.append(perks(first, !closed));
+    box.append(txt, getZzzap(token, { copy: true }));
+    return box;
+  }
+
+  // What the app adds: a bold lead over a dim detail, no icons.
+  function perks(first, withVote) {
+    const named = first && first !== "They";
+    const list = el("ul", "perks");
     for (const [lead, detail] of [
-      ...(closed ? [] : [["Keep your vote", named ? `It comes with you, and you're connected to ${first}` : "It comes with you"]]),
+      ...(withVote ? [["Keep your vote", named ? `It comes with you, and you're connected to ${first}` : "It comes with you"]] : []),
       ["Vote in one tap", "Right from your Lock Screen"],
       ["Watch it live", "The votes fill in on your Lock Screen"],
       ["Ask your own", "Quick answers from your people"],
     ]) {
       const li = el("li");
       li.append(el("div", "lead", lead), el("div", "detail", detail));
-      perks.append(li);
+      list.append(li);
     }
-    txt.append(perks);
-    box.append(txt, getZzzap(token, { copy: true }));
-    return box;
+    return list;
+  }
+
+  // Right after an iPhone vote, before the tally (Stacy, 11/25): a thank-you
+  // over the blurred results with why to get the app. See Results always
+  // opens them. Once per zzzap: a refresh or a later visit goes straight
+  // to the results, and the Get Zzzap card stays under them.
+  function welcome(token, first) {
+    const overlay = el("div", "z-welcome");
+    const card = el("div", "z-welcome-card get");
+    card.setAttribute("role", "dialog");
+    card.setAttribute("aria-modal", "true");
+    const title = el("h2", "z-welcome-title", "Thanks for weighing in");
+    title.id = "z-welcome-title";
+    title.tabIndex = -1;
+    card.setAttribute("aria-labelledby", title.id);
+    const see = el("button", "z-welcome-see", "See Results");
+    see.type = "button";
+    card.append(title, el("div", "z-welcome-free", "Zzzap is free"), perks(first, true),
+      getZzzap(token, { copy: true }), see);
+    overlay.append(card);
+
+    const close = () => {
+      overlay.remove();
+      document.body.classList.remove("z-locked-scroll");
+      document.removeEventListener("keydown", onKey);
+    };
+    const onKey = event => { if (event.key === "Escape") close(); };
+    see.addEventListener("click", close);
+    document.addEventListener("keydown", onKey);
+    document.body.classList.add("z-locked-scroll");
+    document.body.append(overlay);
+    title.focus({ preventScroll: true });
   }
 
   function sender(poll) {
@@ -536,6 +574,12 @@
       parts.push(...results(options, counts, voted ? mine : null, closed));
       parts.push(pitch(token, first, closed));
       show(...parts);
+      // iPhone only for now (Android gets it with its app); samples show it
+      // anywhere so it can be checked on a computer.
+      if (voted && !closed && !memory.welcomed && (isIPhone() || isSample)) {
+        save(token, { welcomed: true });
+        welcome(token, first);
+      }
       if (!closed) { keepLive(token); watchEnd(token, endsAt, true); }
       return;
     }

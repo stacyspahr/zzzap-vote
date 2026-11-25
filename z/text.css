@@ -122,6 +122,41 @@ body[data-header="text"] .z-page .sheet { background: transparent; }
 .z-pitch .z-get { margin-top: 0; }
 .z-pitch .open-app { margin-top: 12px; }
 
+/* Right after an iPhone vote: the thank-you over the blurred results,
+   rising from the bottom like an iOS sheet (Stacy, 11/25). */
+.z-welcome {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; align-items: flex-end; justify-content: center;
+  padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  background: rgba(10,10,15,.5);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  animation: z-fade .25s ease-out;
+}
+.z-welcome-card.get {
+  width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; margin: 0;
+  padding: 24px 20px 14px; border-radius: 28px; gap: 0;
+  background: linear-gradient(135deg, rgba(255,214,10,.13), rgba(255,214,10,.04)), #1C1C1E;
+  box-shadow: 0 20px 50px rgba(0,0,0,.6);
+  animation: z-rise .35s cubic-bezier(.2,.9,.3,1);
+}
+.z-welcome-title {
+  font-family: -apple-system, "SF Pro Display", sans-serif;
+  font-size: 26px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1;
+  text-align: center; outline: none; margin: 0;
+}
+.z-welcome-free { text-align: center; font-size: 17px; font-weight: 700; color: var(--dim); margin-top: 6px; }
+.z-welcome .perks { margin-top: 16px; }
+.z-welcome .z-get { margin-top: 18px; }
+.z-welcome .open-app { margin-top: 12px; }
+.z-welcome-see {
+  display: block; width: 100%; margin-top: 6px; padding: 12px; cursor: pointer;
+  background: none; border: none; color: var(--text); font: inherit; font-size: 16px; font-weight: 600;
+}
+body.z-locked-scroll { overflow: hidden; }
+@keyframes z-fade { from { opacity: 0; } }
+@keyframes z-rise { from { transform: translateY(40px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .z-welcome, .z-welcome-card.get { animation: none; } }
+
 /* Pulled, gone, or couldn't load. */
 .z-message { padding-top: 4vh; }
 .z-message h1 { font-size: 26px; letter-spacing: -.01em; margin-top: 6px; }
