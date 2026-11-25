@@ -310,59 +310,60 @@
     return wrap;
   }
 
-  // After voting (or once it ended): why get the app, then Get Zzzap
-  // (Stacy, 11/20). The Surge page's card (surge.css .get): a bold lead
-  // over a dim detail, no icons; every line is live in the app.
+  // Under the results (or once it ended): just a title and Get Zzzap. The
+  // why lives in the popup, so it isn't said twice (Stacy, 11/25).
   function pitch(token, first, closed) {
     if (isAndroid()) return null;
     const box = el("div", "get z-pitch");
-    const txt = el("div", "txt");
     // render() falls back to "They" when the server sends no first name.
     const named = first && first !== "They";
-    txt.append(
+    box.append(
       el("div", "t1", closed ? (named ? `${first} is on Zzzap` : "Get Zzzap") : "See how it ends"),
-      el("div", "t2", "With the free Zzzap app you can:"),
+      getZzzap(token, { copy: true }),
     );
-    // Ended: they may not have voted, so no "your vote" line.
-    txt.append(perks(first, !closed));
-    box.append(txt, getZzzap(token, { copy: true }));
     return box;
   }
 
-  // What the app adds: a bold lead over a dim detail, no icons.
-  function perks(first, withVote) {
-    const named = first && first !== "They";
-    const list = el("ul", "perks");
-    for (const [lead, detail] of [
-      ...(withVote ? [["Keep your vote", named ? `It comes with you, and you're connected to ${first}` : "It comes with you"]] : []),
-      ["Vote in one tap", "Right from your Lock Screen"],
-      ["Watch it live", "The votes fill in on your Lock Screen"],
-      ["Ask your own", "Quick answers from your people"],
-    ]) {
-      const li = el("li");
-      li.append(el("div", "lead", lead), el("div", "detail", detail));
-      list.append(li);
+  // A small live zzzap, like the app's Lock Screen card: the bars trade
+  // places so it reads as votes coming in. Shows asking instead of listing it.
+  function liveSample() {
+    const card = el("div", "z-sample");
+    card.setAttribute("aria-hidden", "true");
+    const top = el("div", "z-sample-top");
+    top.append(el("span", "z-sample-live", "Live"), el("span", "z-sample-left", "12:48 left"));
+    card.append(top, el("div", "z-sample-q", "Tacos or pizza tonight?"));
+    for (const [answer, cls] of [["Tacos", "a"], ["Pizza", "b"]]) {
+      const row = el("div", "z-sample-row");
+      const track = el("div", "z-sample-track");
+      track.append(el("div", `z-sample-fill ${cls}`));
+      row.append(el("span", "z-sample-label", answer), track);
+      card.append(row);
     }
-    return list;
+    return card;
   }
 
   // Right after an iPhone vote, before the tally (Stacy, 11/25): a thank-you
-  // over the blurred results with why to get the app. See Results always
-  // opens them. Once per zzzap: a refresh or a later visit goes straight
-  // to the results, and the Get Zzzap card stays under them.
+  // over the blurred results that turns them into the one asking. See
+  // Results always opens them. Once per zzzap: a refresh or a later visit
+  // goes straight to the results.
   function welcome(token, first) {
     const overlay = el("div", "z-welcome");
     const card = el("div", "z-welcome-card get");
     card.setAttribute("role", "dialog");
     card.setAttribute("aria-modal", "true");
-    const title = el("h2", "z-welcome-title", "Thanks for weighing in");
+    const title = el("h2", "z-welcome-title", "What would you ask?");
     title.id = "z-welcome-title";
     title.tabIndex = -1;
     card.setAttribute("aria-labelledby", title.id);
     const see = el("button", "z-welcome-see", "See Results");
     see.type = "button";
-    card.append(title, el("div", "z-welcome-free", "Zzzap is free"), perks(first, true),
-      getZzzap(token, { copy: true }), see);
+    const get = getZzzap(token, { copy: true, caption: "Free. Your vote comes with you." });
+    card.append(
+      el("div", "z-welcome-thanks", "Thanks for weighing in"),
+      title,
+      liveSample(),
+      el("p", "z-welcome-line", "Your people vote from their Lock Screen, or by text like you just did. You watch it fill in live."),
+      get, see);
     overlay.append(card);
 
     const close = () => {

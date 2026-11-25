@@ -139,14 +139,35 @@ body[data-header="text"] .z-page .sheet { background: transparent; }
   box-shadow: 0 20px 50px rgba(0,0,0,.6);
   animation: z-rise .35s cubic-bezier(.2,.9,.3,1);
 }
+.z-welcome-thanks { text-align: center; font-size: 14px; font-weight: 600; color: var(--dim); }
 .z-welcome-title {
   font-family: -apple-system, "SF Pro Display", sans-serif;
-  font-size: 26px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1;
-  text-align: center; outline: none; margin: 0;
+  font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1;
+  text-align: center; outline: none; margin: 4px 0 0;
 }
-.z-welcome-free { text-align: center; font-size: 17px; font-weight: 700; color: var(--dim); margin-top: 6px; }
-.z-welcome .perks { margin-top: 16px; }
+.z-welcome-line { text-align: center; font-size: 15px; line-height: 1.4; color: var(--dim); margin: 16px 6px 0; }
 .z-welcome .z-get { margin-top: 18px; }
+.z-welcome .z-caption { margin-top: 10px; }
+
+/* The popup's live zzzap: the app's Lock Screen card, votes trading places. */
+.z-sample {
+  margin-top: 18px; padding: 14px 16px 16px; border-radius: 22px;
+  background: rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.08);
+}
+.z-sample-top { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 600; }
+.z-sample-live { color: #30D158; display: flex; align-items: center; gap: 6px; }
+.z-sample-live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: #30D158; animation: z-pulse 1.6s ease-in-out infinite; }
+.z-sample-left { color: #8E8E93; font-variant-numeric: tabular-nums; }
+.z-sample-q { font-size: 17px; font-weight: 700; margin: 8px 0 10px; }
+.z-sample-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
+.z-sample-label { width: 46px; font-size: 14px; font-weight: 600; flex-shrink: 0; }
+.z-sample-track { flex: 1; height: 14px; border-radius: 5px; background: #2C2C2E; overflow: hidden; }
+.z-sample-fill { height: 100%; border-radius: 5px; }
+.z-sample-fill.a { background: #30D158; animation: z-vote-a 4.8s ease-in-out infinite; }
+.z-sample-fill.b { background: rgba(255,69,58,.6); animation: z-vote-b 4.8s ease-in-out infinite; }
+@keyframes z-vote-a { 0% { width: 8%; } 30% { width: 55%; } 60%, 100% { width: 100%; } }
+@keyframes z-vote-b { 0% { width: 6%; } 30% { width: 70%; } 60%, 100% { width: 62%; } }
+@keyframes z-pulse { 50% { opacity: .35; } }
 .z-welcome .open-app { margin-top: 12px; }
 .z-welcome-see {
   display: block; width: 100%; margin-top: 6px; padding: 12px; cursor: pointer;
@@ -155,7 +176,11 @@ body[data-header="text"] .z-page .sheet { background: transparent; }
 body.z-locked-scroll { overflow: hidden; }
 @keyframes z-fade { from { opacity: 0; } }
 @keyframes z-rise { from { transform: translateY(40px); opacity: 0; } }
-@media (prefers-reduced-motion: reduce) { .z-welcome, .z-welcome-card.get { animation: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .z-welcome, .z-welcome-card.get, .z-sample-live::before { animation: none; }
+  .z-sample-fill.a { animation: none; width: 100%; }
+  .z-sample-fill.b { animation: none; width: 62%; }
+}
 
 /* Pulled, gone, or couldn't load. */
 .z-message { padding-top: 4vh; }
