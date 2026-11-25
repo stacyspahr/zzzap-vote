@@ -145,6 +145,7 @@ body[data-header="text"] .z-page .sheet { background: transparent; }
   font-size: 30px; font-weight: 800; letter-spacing: -.02em; line-height: 1.1;
   text-align: center; outline: none; margin: 4px 0 0;
 }
+.z-welcome-title > span { display: block; }
 .z-welcome-line { text-align: center; font-size: 15px; line-height: 1.4; color: var(--dim); margin: 16px 6px 0; }
 .z-welcome .z-get { margin-top: 18px; }
 .z-welcome .z-caption { margin-top: 10px; }

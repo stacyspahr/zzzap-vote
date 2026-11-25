@@ -351,7 +351,10 @@
     const card = el("div", "z-welcome-card get");
     card.setAttribute("role", "dialog");
     card.setAttribute("aria-modal", "true");
-    const title = el("h2", "z-welcome-title", "What would you ask?");
+    // The sender's name on its own line; no name, just the question.
+    const title = el("h2", "z-welcome-title");
+    if (first && first !== "They") title.append(el("span", "z-welcome-asked", `${first} asked you.`));
+    title.append(el("span", null, "What would you ask?"));
     title.id = "z-welcome-title";
     title.tabIndex = -1;
     card.setAttribute("aria-labelledby", title.id);
