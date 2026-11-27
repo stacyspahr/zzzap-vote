@@ -5,7 +5,7 @@
     "ignore": ["firebase.json", ".firebaserc", ".github/**", ".git/**", "**/.DS_Store", ".nojekyll", "CNAME", "README.md", "tools/**"],
     "cleanUrls": false,
     "rewrites": [
-      { "source": "/z/*", "function": { "functionId": "textLinkPage", "region": "us-central1" } },
+      { "source": "/z/*", "destination": "/link.html" },
       { "source": "/@*", "destination": "/link.html" }
     ],
     "headers": [
