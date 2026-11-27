@@ -1,0 +1,26 @@
+{
+  "hosting": {
+    "site": "zzzap-vote",
+    "public": ".",
+    "ignore": ["firebase.json", ".firebaserc", ".github/**", ".git/**", "**/.DS_Store", ".nojekyll", "CNAME", "README.md", "tools/**"],
+    "cleanUrls": false,
+    "rewrites": [
+      { "source": "/z/*", "function": { "functionId": "textLinkPage", "region": "us-central1" } },
+      { "source": "/@*", "destination": "/link.html" }
+    ],
+    "headers": [
+      {
+        "source": "/.well-known/apple-app-site-association",
+        "headers": [{ "key": "Content-Type", "value": "application/json" }]
+      },
+      {
+        "source": "**/*.@(html|json)",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      },
+      {
+        "source": "/",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      }
+    ]
+  }
+}
