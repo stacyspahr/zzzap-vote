@@ -6,11 +6,13 @@
 // surge.js. It reuses surge.css for the look.
 //
 // Zak's two functions, both callable by an anonymous browser:
-//   peekTextZzzap({ token })                          -> what to show
-//   castTextVote({ token, spotToken?, optionIndex })  -> { counts, mine }
+//   peekTextZzzap({ token, android? })                          -> what to show
+//   castTextVote({ token, spotToken?, optionIndex, comment?, android? })
+//                                                    -> { counts, mine, thoughts }
 // The browser signs in anonymously first, so the server knows it's the same
 // voter on every visit (one vote per spot).
-// Totals only, never who picked what. No comments.
+// Totals only, never who picked what. Thoughts (11a) carry no names: the
+// server sends them uid-free, hidden ones already gone.
 // Add ?sample (or ?sample=group, open, solo, slow, voted, closed, closed0, closed1, closedmany, closedtie, pulled, notfound,
 // error) to see each state without the server.
 
@@ -29,6 +31,14 @@
     appId: "1:838021448718:web:fcb8b87db61d8b7786685f",
   };
 
+  // Tell the server this phone is Android (item 11b), so the sender sees they
+  // can vote by text but can't get the app yet. Only that one yes, nothing
+  // else about the device. Turn off once there's an Android app.
+  const SEND_ANDROID = true;
+
+  // Longest thought the server keeps (same as the app's comments).
+  const THOUGHT_MAX = 1000;
+
   // ---------- Small helpers (text only, never HTML from data) ----------
 
   function el(tag, className, text) {
@@ -39,6 +49,10 @@
   }
 
   function isIPhone() { return /iPhone|iPod/.test(navigator.userAgent); }
+  function isAndroid() { return !isIPhone() && /Android/.test(navigator.userAgent); }
+
+  // Added to both calls on Android only; everyone else sends nothing extra.
+  function deviceField() { return SEND_ANDROID && isAndroid() ? { android: true } : {}; }
 
   function tokenFromAddress() {
     const match = location.pathname.match(/^\/z\/([A-Za-z0-9_-]{8,64})\/?$/);
@@ -132,6 +146,16 @@
     return Array.from({ length: n }, (_, i) => Number(counts[i]) || 0);
   }
 
+  // Thoughts: [{ id, optionIndex, text }], just the text and the answer it
+  // sits under (-1 for none). null when the server sent none, so what's on
+  // screen stays.
+  function cleanThoughts(thoughts) {
+    if (!Array.isArray(thoughts)) return null;
+    return thoughts
+      .filter(t => t && typeof t.text === "string" && t.text.trim())
+      .map(t => ({ text: t.text.trim(), optionIndex: Number.isInteger(t.optionIndex) ? t.optionIndex : -1 }));
+  }
+
   // What this browser remembers per link: the name it picked on a group
   // link and its answer, so a reload shows its pick.
   // Samples remember only while the page is open, so voting on one never
@@ -198,25 +222,30 @@
   }
 
   // Wakes the vote function while the page loads, so the tap on an answer
-  // doesn't wait on a cold start too (Stacy, 11/23). A vote with no token is
-  // refused before any database work; the answer is ignored.
+  // doesn't wait on a cold start too (Stacy, 11/23). { wake: true } is the
+  // server's no-op poke (item 9a): it answers right away, with no database
+  // work and nothing in the error log. The answer is ignored.
   let woke = false;
   function wakeVote(call) {
     if (woke) return;
     woke = true;
-    call("castTextVote", {}).catch(() => {});
+    call("castTextVote", { wake: true }).catch(() => {});
   }
 
   const liveApi = {
     async peek(token) {
       const call = await loadFunctions();
       wakeVote(call);
-      return call("peekTextZzzap", { token });
+      return call("peekTextZzzap", { token, ...deviceField() });
     },
-    async vote(token, spotToken, optionIndex) {
+    // A thought rides on the vote. Sent again after the vote went in, the
+    // server keeps the vote as it was and stores the thought under the
+    // answer already picked (one thought per link).
+    async vote(token, spotToken, optionIndex, comment) {
       const call = await loadFunctions();
       const data = spotToken ? { token, spotToken, optionIndex } : { token, optionIndex };
-      return call("castTextVote", data);
+      if (comment) data.comment = comment;
+      return call("castTextVote", { ...data, ...deviceField() });
     },
   };
 
@@ -229,6 +258,12 @@
       : kind === "closedtie" ? [1, 1, 1] : many ? [14, 9, 3] : [2, 1];
     let mine = kind === "voted" || kind === "closed1" || many ? 0 : null;
     const usedSpot = "s2";
+    // A couple already in, one under each answer and one under none.
+    const thoughts = [
+      { id: "a1", optionIndex: 0, text: "Blue, for sure. Matches the invite." },
+      { id: "t_1", optionIndex: 1, text: "Green looked better in the photos" },
+      { id: "a2", optionIndex: -1, text: "Either works, have fun!" },
+    ];
     const poll = () => ({
       question: "Blue one or green one for the party?",
       options: many ? ["Blue", "Green", "Red"] : ["Blue", "Green"],
@@ -259,13 +294,21 @@
           status: "ok", kind: "person", poll: poll(),
           me: { name: "Michelle", voted: mine !== null, option: mine === null ? undefined : mine },
           counts: shown ? counts.slice() : undefined,
+          // Like the server: thoughts only once this spot voted.
+          thoughts: mine !== null ? thoughts.slice() : undefined,
         };
       },
-      async vote(token, spotToken, optionIndex) {
+      async vote(token, spotToken, optionIndex, comment) {
         await new Promise(r => setTimeout(r, 500));
         if (spotToken === usedSpot) return { already: true };
-        if (mine === null) { counts[optionIndex] += 1; mine = optionIndex; }
-        return { counts: counts.slice(), mine };
+        const already = mine !== null;
+        if (!already) { counts[optionIndex] += 1; mine = optionIndex; }
+        if (comment) {
+          const own = thoughts.find(t => t.id === "t_me");
+          if (own) own.text = comment;
+          else thoughts.push({ id: "t_me", optionIndex: mine, text: comment });
+        }
+        return { counts: counts.slice(), mine, already, thoughts: thoughts.slice() };
       },
     };
   }
@@ -278,8 +321,8 @@
   // Get Zzzap: copies this link first, so after installing, the app's
   // "Were you invited?" paste sheet picks the zzzap back up (copying only
   // works on a tap). Without the copy, it still goes.
-  // Android: no app to offer, so no download parts at all (Stacy, 11/20).
-  function isAndroid() { return !isIPhone() && /Android/.test(navigator.userAgent); }
+  // Android: no app to offer, so no download parts at all (Stacy, 11/20;
+  // isAndroid is up with the helpers).
 
   function getZzzap(token, { copy, caption }) {
     if (isAndroid()) return null;
@@ -551,11 +594,16 @@
     let spot = group ? spots.find(s => s.spotToken === memory.spot) || null : null;
     const voted = group ? !!(spot && counts) : (!!me.voted || (mine !== null && !!counts));
     if (!voted && !closed) mine = null;
+    const thoughts = cleanThoughts(data.thoughts);
+    // Right after voting, the optional thought comes first, once per link
+    // (vote, thought, popup, results: Stacy, 11/25).
+    const asking = voted && !closed && !memory.thought;
 
-    // Only redraw when the screen would change; counts alone move in place.
-    const key = JSON.stringify([closed, voted, group && !voted ? spots.map(s => s.spotToken) : null]);
+    // Only redraw when the screen would change; counts and thoughts alone
+    // move in place.
+    const key = JSON.stringify([closed, voted, asking, group && !voted ? spots.map(s => s.spotToken) : null]);
     if (key === shownKey && updateCounts && counts && !note) {
-      updateCounts(counts, mine, closed);
+      updateCounts(counts, mine, closed, thoughts);
       return;
     }
     shownKey = key;
@@ -574,8 +622,15 @@
     const error = el("p", "error hidden", "");
     const parts = [sender(poll), summary];
 
+    if (asking) {
+      parts.push(...thoughtStep());
+      show(...parts);
+      watchEnd(token, endsAt, true);
+      return;
+    }
+
     if (voted || closed) {
-      parts.push(...results(options, counts, voted ? mine : null, closed));
+      parts.push(...results(options, counts, voted ? mine : null, closed, thoughts));
       parts.push(pitch(token, first, closed));
       show(...parts);
       // iPhone only for now (Android gets it with its app); samples show it
@@ -689,6 +744,69 @@
         error.classList.remove("hidden");
       }
     }
+
+    // The thought, after the vote went in: a box, Send, Skip. Send goes to
+    // castTextVote again with the same answer plus the thought; the server
+    // keeps the vote as it was, stores the thought under that answer, and
+    // sends back everyone's thoughts for the results. Skip goes straight on.
+    function thoughtStep() {
+      const block = el("div", "z-block z-thought-box");
+      const box = el("textarea", "z-thought-input");
+      box.placeholder = "Add a thought";
+      box.setAttribute("aria-label", "Add a thought");
+      box.maxLength = THOUGHT_MAX;
+      box.rows = 3;
+      block.append(box);
+      const wrap = el("div", "z-submit-wrap on");
+      const send = el("button", "z-submit", "Send");
+      send.type = "button";
+      send.disabled = true;
+      const skip = el("button", "z-skip", "Skip");
+      skip.type = "button";
+      wrap.append(send, skip, error);
+      box.addEventListener("input", () => { send.disabled = !box.value.trim(); });
+
+      const done = fresh => {
+        save(token, { thought: true });
+        shownKey = null;
+        render(token, fresh || data);
+      };
+      skip.addEventListener("click", () => done());
+      send.addEventListener("click", async () => {
+        const text = box.value.trim().slice(0, THOUGHT_MAX);
+        if (!text) return;
+        box.disabled = send.disabled = skip.disabled = true;
+        send.classList.add("sending");
+        send.textContent = "Sending…";
+        error.classList.add("hidden");
+        try {
+          const result = (await api.vote(token, spot ? spot.spotToken : null, mine, text)) || {};
+          const fresh = cleanCounts(result.counts, options.length);
+          done({
+            ...data,
+            counts: fresh || data.counts,
+            thoughts: Array.isArray(result.thoughts) ? result.thoughts : data.thoughts,
+          });
+        } catch (err) {
+          const code = err && err.code;
+          // Pulled or gone since: show what's true now.
+          if (code === "functions/failed-precondition" || code === "functions/not-found") {
+            save(token, { thought: true });
+            load(token, true);
+            return;
+          }
+          send.classList.remove("sending");
+          send.textContent = "Send";
+          box.disabled = skip.disabled = false;
+          send.disabled = !box.value.trim();
+          error.textContent = code === "functions/resource-exhausted"
+            ? "Slow down a moment, then try again."
+            : "Your thought didn't go through. Try again.";
+          error.classList.remove("hidden");
+        }
+      });
+      return [el("div", "z-head", "Your vote is in"), block, wrap];
+    }
   }
 
   function answerLabel(opt) {
@@ -735,9 +853,11 @@
   // The app's results (PollDetailView): "Live Results" / "Results", each
   // answer with "N votes" (percent from 5 up), a bar under it measured
   // against the leader, green for the leader, white for a tie at the top,
-  // red for the rest; your answer bold with a yellow "You". Returns the
-  // title and block; updateCounts moves them in place.
-  function results(options, counts, mine, closed) {
+  // red for the rest; your answer bold with a yellow "You". Each answer's
+  // thoughts sit under its bar, no names; ones under no answer come after
+  // the answers (11a). Returns the title and block; updateCounts moves them
+  // in place.
+  function results(options, counts, mine, closed, thoughts) {
     const head = el("div", "z-head", closed ? "Results" : "Live Results");
     const block = el("div", "z-block z-results");
     const rows = options.map((opt, i) => {
@@ -750,16 +870,31 @@
       const track = el("div", "z-track");
       const fill = el("div", "z-fill");
       track.append(fill);
-      row.append(top, track);
+      const said = el("div", "z-thoughts hidden");
+      row.append(top, track, said);
       block.append(row);
-      return { row, num, fill };
+      return { row, num, fill, said };
     });
+    const other = el("div", "z-thoughts z-thoughts-other hidden");
+    block.append(other);
     const empty = el("p", "z-empty hidden", "");
     const locked = el("p", "z-locked", closed ? "" : "Your vote is locked in");
     block.append(empty);
     if (!closed && mine !== null) block.append(locked);
 
-    function update(fresh, myPick, isClosed) {
+    // Nothing to show, nothing drawn: no empty line for no thoughts.
+    function fillThoughts(node, list) {
+      node.replaceChildren(...list.map(t => el("p", "z-thought", t.text)));
+      node.classList.toggle("hidden", list.length === 0);
+    }
+    let shownThoughts = [];
+    function setThoughts(list) {
+      if (list) shownThoughts = list;
+      rows.forEach(({ said }, i) => fillThoughts(said, shownThoughts.filter(t => t.optionIndex === i)));
+      fillThoughts(other, shownThoughts.filter(t => !(t.optionIndex >= 0 && t.optionIndex < options.length)));
+    }
+
+    function update(fresh, myPick, isClosed, freshThoughts) {
       const c = fresh || options.map(() => 0);
       const total = c.reduce((a, b) => a + b, 0);
       const pcts = percentages(c);
@@ -779,10 +914,12 @@
         // Bold: your answer; if you didn't vote, the leader once it ended.
         row.classList.toggle("bold", myPick !== null ? i === myPick : (isClosed && leads));
       });
+      setThoughts(freshThoughts);
+      if (none) other.classList.add("hidden");
       empty.classList.toggle("hidden", !none);
       empty.textContent = !fresh ? "Final results are on the way" : "No one voted on this zzzap.";
     }
-    update(counts, mine, closed);
+    update(counts, mine, closed, thoughts);
     updateCounts = update;
     return [head, block];
   }

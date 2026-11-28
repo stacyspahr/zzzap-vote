@@ -90,6 +90,29 @@ body[data-header="text"] .z-page .sheet { background: transparent; }
 .z-empty { color: #8E8E93; font-size: 15px; text-align: center; padding: 18px 0; }
 .z-locked { color: #8E8E93; font-size: 12px; padding: 4px 0 12px; }
 
+/* Thoughts (11a): just the text in gray, under the answer its writer
+   picked; ones under no answer after the answers. */
+.z-thoughts { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.z-thought { margin: 0; color: #8E8E93; font-size: 15px; line-height: 1.35; overflow-wrap: anywhere; white-space: pre-line; }
+.z-thoughts-other { margin-top: 0; padding: 12px 0 14px; border-top: 1px solid rgba(255,255,255,.09); }
+.z-results > .z-thoughts-other:first-child { border-top: none; }
+
+/* Right after voting: the optional thought, Send (yellow) and Skip. */
+.z-thought-box { padding: 14px 18px; }
+.z-thought-input {
+  display: block; width: 100%; min-height: 84px; resize: vertical; padding: 0;
+  background: none; border: none; outline: none; color: var(--text);
+  font: inherit; font-size: 17px; line-height: 1.35;
+}
+.z-thought-input::placeholder { color: #8E8E93; }
+.z-submit:disabled { opacity: .4; cursor: default; }
+.z-submit.sending:disabled { opacity: 1; }
+.z-skip {
+  display: block; width: 100%; margin-top: 6px; padding: 12px; cursor: pointer;
+  background: none; border: none; color: var(--text); font: inherit; font-size: 16px; font-weight: 600;
+}
+.z-skip:disabled { opacity: .4; cursor: default; }
+
 /* Who sees the pick: the app's own block, its orange (the sender will
    know) or green (private), centered. */
 .z-note {
